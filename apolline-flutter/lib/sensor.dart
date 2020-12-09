@@ -172,11 +172,13 @@ class _SensorViewState extends State<SensorView> {
                 ),
                 title: Text('Apolline'),
               ),
-              body: TabBarView(children: [
-                Quality(lastReceivedData: lastReceivedData),
-                Stats(dataSensor: lastReceivedData),
-                MapSample(),
-              ])),
+              body: TabBarView(
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    Quality(lastReceivedData: lastReceivedData),
+                    Stats(dataSensor: lastReceivedData),
+                    MapSample(),
+                  ])),
         ),
       );
     }
