@@ -286,28 +286,32 @@ class _SensorViewState extends State<SensorView> {
       );
     } else {
       /* We got data : display them */
-      return MaterialApp(
-        home: DefaultTabController(
-          length: 3,
-          child: Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.green,
-                bottom: TabBar(
-                  tabs: [
-                    Tab(icon: Icon(Icons.home)),
-                    Tab(icon: Icon(Icons.insert_chart)),
-                    Tab(icon: Icon(Icons.map)),
-                  ],
+      return WillPopScope(
+        onWillPop: _onWillPop,
+        child: MaterialApp(
+          home: DefaultTabController(
+            length: 3,
+            child: Scaffold(
+                key: _scaffoldKey,
+                appBar: AppBar(
+                  backgroundColor: Colors.green,
+                  bottom: TabBar(
+                    tabs: [
+                      Tab(icon: Icon(Icons.home)),
+                      Tab(icon: Icon(Icons.insert_chart)),
+                      Tab(icon: Icon(Icons.map)),
+                    ],
+                  ),
+                  title: Text('Apolline'),
                 ),
-                title: Text('Apolline'),
-              ),
-              body: TabBarView(
-                  physics: NeverScrollableScrollPhysics(),
-                  children: [
-                    Quality(lastReceivedData: lastReceivedData),
-                    Stats(dataSensor: lastReceivedData),
-                    MapSample(),
-                  ])),
+                body: TabBarView(
+                    physics: NeverScrollableScrollPhysics(),
+                    children: [
+                      Quality(lastReceivedData: lastReceivedData),
+                      Stats(dataSensor: lastReceivedData),
+                      MapSample(),
+                    ])),
+          ),
         ),
       );
     }
