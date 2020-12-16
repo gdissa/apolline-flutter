@@ -1,9 +1,38 @@
 import 'package:flutter/material.dart';
-
+import 'package:workmanager/workmanager.dart';
 import 'bluetoothDevicesPage.dart';
 import 'services/service_locator.dart';
 
+void callbackDispatcher() {
+  Workmanager.executeTask((task, inputData) {
+    print(
+        "Native called background task: $backgroundTask"); //simpleTask will be emitted here.
+    return Future.value(true);
+  });
+}
+
 void main() {
+  Workmanager.initialize(
+      callbackDispatcher, // The top level function, aka callbackDispatcher
+      isInDebugMode:
+          true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+      );
+  Workmanager.registerOneOffTask("1", "simpleTask",
+      initialDelay: Duration(seconds: 10),
+      constraints: Constraints(
+          networkType: NetworkType.connected,
+          requiresBatteryNotLow: true,
+          requiresCharging: true,
+          requiresDeviceIdle: true,
+          requiresStorageNotLow: true));
+
+  Workmanager.registerPeriodicTask(
+    "2",
+    "simplePeriodicTask",
+    // When no frequency is provided the default 15 minutes is set.
+    // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
+    frequency: Duration(minutes: 15),
+  );
   setupServiceLocator();
   runApp(ApollineApp());
 }
