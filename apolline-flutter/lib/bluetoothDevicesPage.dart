@@ -1,4 +1,6 @@
 import 'package:apollineflutter/sensor.dart';
+import 'package:apollineflutter/services/influxdb_client.dart';
+import 'package:apollineflutter/services/sqflite_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -27,10 +29,22 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
   bool timeout = true;
   Map<String, BluetoothDevice> devices = {};
   Map<String, BluetoothDevice> pairedDevices = {};
+  // use for influxDB to send data to the back
+  InfluxDBAPI _service = InfluxDBAPI();
+  // use for sqfLite to save data in local
+  SqfLiteService _sqfLiteSerive = SqfLiteService();
 
   @override
   void initState() {
     super.initState();
+    try {
+      _service.ping();
+      _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
+        sensormodels.forEach((sensormodel) {
+        _service.write(sensormodel.fmtToInfluxData());
+        });
+      });
+    } catch (e) {}
     initializeDevice();
   }
 

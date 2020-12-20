@@ -21,11 +21,15 @@ class SqfLiteService {
   static final _databaseName = "apolline.db";
   // Increment this version when you need to change the schema.
   static final _databaseVersion = 1;
-
   // Make this a singleton class.
   SqfLiteService._privateConstructor();
-  static final SqfLiteService instance = SqfLiteService._privateConstructor();
+  static final SqfLiteService _instance = SqfLiteService._privateConstructor();
 
+  ///factory
+  factory SqfLiteService() {
+    return _instance;
+  }
+  
   // Only allow a single open connection to the database.
   static Database _database;
   Future<Database> get database async {
@@ -58,9 +62,17 @@ class SqfLiteService {
           )
           ''');
   }
+  
+  // SQL save SensorModel
+   Future<SensorModel> insert(SensorModel sensorModel) async {
+    Database db = await database;
+    // ignore: unused_local_variable
+    var id = await db.insert(tableSensorModel, sensorModel.toJSON());
+    return sensorModel;
+  }
 
   // SQL get SensorModel data by uuid
-  Future<List<SensorModel>> querySensdorModelByUuid(String uuid) async {
+  Future<List<SensorModel>> querySensorModelByUuid(String uuid) async {
     Database db = await database;
     List<Map> maps = await db.query(tableSensorModel,
         columns: [
@@ -83,7 +95,7 @@ class SqfLiteService {
   }
 
   // SQL get all SensorModel data
-  Future<List<SensorModel>> queryAllSensdorModels() async {
+  Future<List<SensorModel>> queryAllSensorModels() async {
     Database db = await database;
     List<Map> maps = await db.query(tableSensorModel);
     if (maps.length > 0) {
@@ -95,8 +107,14 @@ class SqfLiteService {
   }
 
   // SQL delete all data
-  Future<int> deleteAll(int id) async {
+  Future<int> deleteAllData(int id) async {
     Database db = await database;
     return await db.delete(tableSensorModel);
+  }
+
+  // SQL close database
+   Future close() async {
+    Database db = await database;
+    db.close();
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:apollineflutter/gattsample.dart';
 import 'package:apollineflutter/sensormodel.dart';
+import 'package:apollineflutter/services/sqflite_service.dart';
 import 'package:apollineflutter/utils/position.dart';
 import 'package:apollineflutter/services/location_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,7 +44,10 @@ class _SensorViewState extends State<SensorView> {
   Timer timer;
   ConnexionType connectType = ConnexionType.Normal;
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  // use for influxDB to send data to the back
   InfluxDBAPI _service = InfluxDBAPI();
+  // use for sqfLite to save data in local
+  SqfLiteService _sqfLiteSerive = SqfLiteService();
   Position _currentPosition;
 
   RealtimeDataService _dataService = locator<RealtimeDataService>();
@@ -61,6 +65,15 @@ class _SensorViewState extends State<SensorView> {
       if (!initialized) {
         setState(() {
           initialized = true;
+          _sqfLiteSerive.database;
+           try {
+            _service.ping();
+            _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
+            sensormodels.forEach((sensormodel) {
+            _service.write(sensormodel.fmtToInfluxData());
+            });
+          });
+          } catch (e) {}
         });
       }
       /* add new values in stream */
@@ -74,7 +87,9 @@ class _SensorViewState extends State<SensorView> {
       try {
         _service.ping();
         _service.write(lastReceivedData.fmtToInfluxData());
-      } catch (e) {}
+      } catch (e) {
+        _sqfLiteSerive.insert(lastReceivedData);
+      }
     }
   }
 
