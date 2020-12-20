@@ -16,7 +16,6 @@ import 'widgets/quality.dart';
 import 'widgets/stats.dart';
 import 'services/influxdb_client.dart';
 
-
 enum ConnexionType { Normal, Disconnect }
 
 class SensorView extends StatefulWidget {
@@ -59,15 +58,23 @@ class _SensorViewState extends State<SensorView> {
       List<String> values = buf.split(';');
       var position = this._currentPosition ?? Position();
       /* Split values in a parseable format, and send them to the UI */
-      setState(() {
-        lastReceivedData = SensorModel(values: values, device: SensorDevice(widget.device), position: position);
-        _service.write(lastReceivedData.fmtToInfluxData());
-        _dataService.update(values);
-        initialized = true;
-
-        /* Perform additional handling here */
-      });
+      if (!initialized) {
+        setState(() {
+          initialized = true;
+        });
+      }
+      /* add new values in stream */
+      _dataService.update(values);
+      /* Perform additional handling here */
       buf = "";
+      lastReceivedData = SensorModel(
+          values: values,
+          device: SensorDevice(widget.device),
+          position: position);
+      try {
+        _service.write(lastReceivedData.fmtToInfluxData());
+      } catch (e) {
+      }
     }
   }
 
