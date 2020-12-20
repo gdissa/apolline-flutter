@@ -5,7 +5,7 @@ class SensorDevice {
   String _name;
   String _uuid;
 
-  ///
+  /// Authors BARRY Issagha, GDISSA Ramy
   ///constructor
   SensorDevice(this._device);
 

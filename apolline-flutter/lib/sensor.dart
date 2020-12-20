@@ -72,9 +72,9 @@ class _SensorViewState extends State<SensorView> {
           device: SensorDevice(widget.device),
           position: position);
       try {
+        _service.ping();
         _service.write(lastReceivedData.fmtToInfluxData());
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
 

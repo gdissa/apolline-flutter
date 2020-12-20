@@ -2,6 +2,8 @@ import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/gattsample.dart';
 import 'package:apollineflutter/utils/position.dart';
 
+// Authors BARRY Issagha, GDISSA Ramy
+//Unité
 class Units {
   static const String CONCENTRATION_UG_M3 = "µg/m3";
   static const String CONCENTRATION_ABOVE = "#/0.1L";
@@ -10,6 +12,7 @@ class Units {
   static const String TEMPERATURE_KELVIN = "°K";
 }
 
+//sensorModel contient les values, la position et le device
 class SensorModel {
   static const int SENSOR_DATE = 0;
   static const int SENSOR_PM_1 = 1;
@@ -76,6 +79,7 @@ class SensorModel {
     return "$pm1\n$pm25\n$pm10\n$tmpC\n$tmpK\n$humi\n$humiC";
   }
 
+  // Format Json of sensorModel
   Map<String, dynamic> toJSON() {
     var json = new Map();
     json["deviceName"] = device?.deviceName ?? "Apolline00";
@@ -88,6 +92,7 @@ class SensorModel {
   }
 
   // ignore: non_constant_identifier_names
+  // create object from Json
   SensorModel.fromJson(Map<String, dynamic> json)
       : this(
             values: json['value'].split('|'),
