@@ -12,7 +12,7 @@ final String columnUuid = 'uuid';
 final String columnProvider = 'provider';
 final String columnGeohash = 'geohash';
 final String columnTransport = 'transport';
-final String columnValues = 'values';
+final String columnValues = 'data';
 
 // Author GDISSA Ramy
 // Sqflite Database
@@ -23,7 +23,7 @@ class SqfLiteService {
   static final _databaseVersion = 1;
   // database table and column names
   static final tableSensorModel = 'SensorModel';
-  static final columnId = '_id';
+  static final columnId = 'id';
   static final columnDeviceName = 'deviceName';
   static final columnUuid = 'uuid';
   static final columnProvider = 'provider';
@@ -60,7 +60,7 @@ class SqfLiteService {
 
   // SQL string to create the database
   Future _onCreate(Database db, int version) async {
-    await db.execute('''
+    String query = '''
           CREATE TABLE $tableSensorModel (
             $columnId INTEGER PRIMARY KEY,
             $columnDeviceName TEXT NOT NULL,
@@ -70,7 +70,8 @@ class SqfLiteService {
             $columnGeohash TEXT NOT NULL,
             $columnValues TEXT NOT NULL
           )
-          ''');
+          ''';
+    await db.execute(query);
   }
 
   // SQL save SensorModel

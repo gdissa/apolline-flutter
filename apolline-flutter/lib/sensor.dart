@@ -33,7 +33,8 @@ class _SensorViewState extends State<SensorView> {
   String buf = "";
   SensorModel lastReceivedData;
   bool initialized = false;
-  StreamSubscription subBluetoothState; //used for remove listening value to sensor
+  StreamSubscription
+      subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
 
@@ -66,13 +67,13 @@ class _SensorViewState extends State<SensorView> {
         setState(() {
           initialized = true;
           _sqfLiteSerive.database;
-           try {
+          try {
             _service.ping();
             _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
-            sensormodels.forEach((sensormodel) {
-            _service.write(sensormodel.fmtToInfluxData());
+              sensormodels.forEach((sensormodel) {
+                _service.write(sensormodel.fmtToInfluxData());
+              });
             });
-          });
           } catch (e) {}
         });
       }
@@ -84,12 +85,12 @@ class _SensorViewState extends State<SensorView> {
           values: values,
           device: SensorDevice(widget.device),
           position: position);
-      try {
-        _service.ping();
-        _service.write(lastReceivedData.fmtToInfluxData());
-      } catch (e) {
-        _sqfLiteSerive.insert(lastReceivedData);
-      }
+        _service.ping().then((value) {
+         _service.write(lastReceivedData.fmtToInfluxData());
+         }).catchError((error){
+             _sqfLiteSerive.insert(lastReceivedData);
+         }           
+         );
     }
   }
 
@@ -196,7 +197,7 @@ class _SensorViewState extends State<SensorView> {
   ///use for prevent when setState call after dispose methode.
   @override
   void setState(fn) {
-    if(this.mounted){
+    if (this.mounted) {
       super.setState(fn);
     }
   }
@@ -233,8 +234,7 @@ class _SensorViewState extends State<SensorView> {
   ///
   ///
   void handleDeviceConnect(BluetoothDevice d) {
-    
-    if(!isConnected) {
+    if (!isConnected) {
       isConnected = true;
       updateState("Configuring device");
       d.discoverServices().then((s) {
@@ -243,9 +243,7 @@ class _SensorViewState extends State<SensorView> {
           handleServiceDiscovered(service);
         });
       });
-
     }
-
   }
 
   ///

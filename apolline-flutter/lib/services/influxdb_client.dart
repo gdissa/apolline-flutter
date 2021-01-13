@@ -41,8 +41,8 @@ class InfluxDBAPI {
 
   ///
   ///check the address [address].
-  void ping() async {
-    client.pingSilent("$_pingUrl"); //utilisation de /health car la v2.0 le contient déjà. actu sur v1.8.x
+  Future<void> ping() async {
+    await client.pingSilent("$_pingUrl"); //utilisation de /health car la v2.0 le contient déjà. actu sur v1.8.x
   }
 
 }
