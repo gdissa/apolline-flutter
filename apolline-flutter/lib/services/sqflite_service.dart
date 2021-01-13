@@ -21,6 +21,16 @@ class SqfLiteService {
   static final _databaseName = "apolline.db";
   // Increment this version when you need to change the schema.
   static final _databaseVersion = 1;
+  // database table and column names
+  static final tableSensorModel = 'SensorModel';
+  static final columnId = '_id';
+  static final columnDeviceName = 'deviceName';
+  static final columnUuid = 'uuid';
+  static final columnProvider = 'provider';
+  static final columnGeohash = 'geohash';
+  static final columnTransport = 'transport';
+  static final columnValues = 'values';
+
   // Make this a singleton class.
   SqfLiteService._privateConstructor();
   static final SqfLiteService _instance = SqfLiteService._privateConstructor();
@@ -29,7 +39,7 @@ class SqfLiteService {
   factory SqfLiteService() {
     return _instance;
   }
-  
+
   // Only allow a single open connection to the database.
   static Database _database;
   Future<Database> get database async {
@@ -62,9 +72,9 @@ class SqfLiteService {
           )
           ''');
   }
-  
+
   // SQL save SensorModel
-   Future<SensorModel> insert(SensorModel sensorModel) async {
+  Future<SensorModel> insert(SensorModel sensorModel) async {
     Database db = await database;
     // ignore: unused_local_variable
     var id = await db.insert(tableSensorModel, sensorModel.toJSON());
@@ -74,6 +84,7 @@ class SqfLiteService {
   // SQL get SensorModel data by uuid
   Future<List<SensorModel>> querySensorModelByUuid(String uuid) async {
     Database db = await database;
+    List<SensorModel> sensdorModels = [];
     List<Map> maps = await db.query(tableSensorModel,
         columns: [
           columnId,
@@ -87,23 +98,22 @@ class SqfLiteService {
         where: '$columnUuid = ?',
         whereArgs: [uuid]);
     if (maps.length > 0) {
-      List<SensorModel> sensdorModels = [];
       maps.forEach((map) => sensdorModels.add(SensorModel.fromJson(map)));
       return sensdorModels;
     }
-    return null;
+    return sensdorModels;
   }
 
   // SQL get all SensorModel data
   Future<List<SensorModel>> queryAllSensorModels() async {
     Database db = await database;
+    List<SensorModel> sensdorModels = [];
     List<Map> maps = await db.query(tableSensorModel);
     if (maps.length > 0) {
-      List<SensorModel> sensdorModels = [];
       maps.forEach((map) => sensdorModels.add(SensorModel.fromJson(map)));
       return sensdorModels;
     }
-    return null;
+    return sensdorModels;
   }
 
   // SQL delete all data
@@ -113,7 +123,7 @@ class SqfLiteService {
   }
 
   // SQL close database
-   Future close() async {
+  Future close() async {
     Database db = await database;
     db.close();
   }

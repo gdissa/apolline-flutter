@@ -37,15 +37,20 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
   @override
   void initState() {
     super.initState();
+    _sendDataToInfluxDB();
+    initializeDevice();
+  }
+
+/* Send data to influxDB */
+  void _sendDataToInfluxDB() {
     try {
       _service.ping();
       _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
         sensormodels.forEach((sensormodel) {
-        _service.write(sensormodel.fmtToInfluxData());
+          _service.write(sensormodel.fmtToInfluxData());
         });
       });
     } catch (e) {}
-    initializeDevice();
   }
 
   ///
@@ -64,7 +69,9 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
   void showDialogBluetooth() {
     Widget okbtn = FlatButton(
       child: Text("ok"),
-      onPressed: () { Navigator.of(context).pop(); },
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
     );
 
     AlertDialog alert = AlertDialog(
@@ -104,7 +111,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
     /* For each result, insert into the detected devices list if not already present */
     var subscription = widget.flutterBlue.scanResults.listen((results) {
       for (ScanResult r in results) {
-        if(r.device.name.length > 0) {
+        if (r.device.name.length > 0) {
           setState(() {
             devices.putIfAbsent(r.device.id.toString(), () => r.device);
           });
