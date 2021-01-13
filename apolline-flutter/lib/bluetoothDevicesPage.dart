@@ -43,14 +43,13 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
 
 /* Send data to influxDB */
   void _sendDataToInfluxDB() {
-    try {
-      _service.ping();
+      _service.ping().then((value) {
       _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
-        sensormodels.forEach((sensormodel) {
+          sensormodels.forEach((sensormodel) {
           _service.write(sensormodel.fmtToInfluxData());
+          });
         });
-      });
-    } catch (e) {}
+      }).catchError((error){});
   }
 
   ///

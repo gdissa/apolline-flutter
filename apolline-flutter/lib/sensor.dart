@@ -86,11 +86,10 @@ class _SensorViewState extends State<SensorView> {
           device: SensorDevice(widget.device),
           position: position);
         _service.ping().then((value) {
-         _service.write(lastReceivedData.fmtToInfluxData());
+            _service.write(lastReceivedData.fmtToInfluxData());
          }).catchError((error){
              _sqfLiteSerive.insert(lastReceivedData);
-         }           
-         );
+         });
     }
   }
 
