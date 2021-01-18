@@ -81,7 +81,7 @@ class SensorModel {
 
   // Format Json of sensorModel
   Map<String, dynamic> toJSON() {
-    var json = new Map();
+    var json = Map<String, dynamic>();
     json["deviceName"] = device?.deviceName ?? "Apolline00";
     json["uuid"] = BlueSensorAttributes.DustSensorServiceUUID;
     json["provider"] = this.position?.provider ?? "no";

@@ -88,7 +88,8 @@ class _SensorViewState extends State<SensorView> {
         _service.ping().then((value) {
             _service.write(lastReceivedData.fmtToInfluxData());
          }).catchError((error){
-             _sqfLiteSerive.insert(lastReceivedData);
+              /* insert data in sqflite */
+              _sqfLiteSerive.insert(lastReceivedData.toJSON());
          });
     }
   }

@@ -4,16 +4,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:apollineflutter/sensormodel.dart';
 
-// database table and column names
-final String tableSensorModel = 'SensorModel';
-final String columnId = '_id';
-final String columnDeviceName = 'deviceName';
-final String columnUuid = 'uuid';
-final String columnProvider = 'provider';
-final String columnGeohash = 'geohash';
-final String columnTransport = 'transport';
-final String columnValues = 'data';
-
 // Author GDISSA Ramy
 // Sqflite Database
 class SqfLiteService {
@@ -29,7 +19,7 @@ class SqfLiteService {
   static final columnProvider = 'provider';
   static final columnGeohash = 'geohash';
   static final columnTransport = 'transport';
-  static final columnValues = 'values';
+  static final columnValues = 'value';
 
   // Make this a singleton class.
   SqfLiteService._privateConstructor();
@@ -75,11 +65,11 @@ class SqfLiteService {
   }
 
   // SQL save SensorModel
-  Future<SensorModel> insert(SensorModel sensorModel) async {
+  Future<Map<String, dynamic>> insert(Map<String, dynamic> sensormodel) async {
     Database db = await database;
     // ignore: unused_local_variable
-    var id = await db.insert(tableSensorModel, sensorModel.toJSON());
-    return sensorModel;
+    var id = await db.insert(tableSensorModel, sensormodel);
+    return sensormodel;
   }
 
   // SQL get SensorModel data by uuid
