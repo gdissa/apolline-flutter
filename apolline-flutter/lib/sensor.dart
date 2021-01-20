@@ -64,17 +64,20 @@ class _SensorViewState extends State<SensorView> {
       var position = this._currentPosition ?? Position();
       /* Split values in a parseable format, and send them to the UI */
       if (!initialized) {
+        _sqfLiteSerive.database;
+        _service.ping().then((_) {
+          _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
+            sensormodels.forEach((sensormodel) {
+              _service.write(sensormodel.fmtToInfluxData());
+            });
+          });
+
+        }).catchError((error) {
+
+        });
+
         setState(() {
           initialized = true;
-          _sqfLiteSerive.database;
-          try {
-            _service.ping();
-            _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
-              sensormodels.forEach((sensormodel) {
-                _service.write(sensormodel.fmtToInfluxData());
-              });
-            });
-          } catch (e) {}
         });
       }
       /* add new values in stream */
