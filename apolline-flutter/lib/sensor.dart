@@ -62,7 +62,6 @@ class _SensorViewState extends State<SensorView> {
       var position = this._currentPosition ?? Position();
       
       var model = SensorModel(values: values, device: SensorDevice(widget.device), position: position);
-      _service.write(model.fmtToInfluxData());
       _dataService.update(values);
       this.updateOrWriteData(model);
       
