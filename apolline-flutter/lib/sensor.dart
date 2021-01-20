@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/services/influxdb_client.dart';
+import 'package:apollineflutter/models/sensor_collection.dart';
 
 import 'services/realtime_data_service.dart';
 import 'services/service_locator.dart';
@@ -36,7 +37,7 @@ class _SensorViewState extends State<SensorView> {
   StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
-  List<SensorModel> lastData = [];
+  SensorCollection lastData = SensorCollection();
 
   List<StreamSubscription> subs =
       []; //used for remove listening value to sensor
@@ -77,12 +78,10 @@ class _SensorViewState extends State<SensorView> {
 
   void updateOrWriteData(SensorModel model) {
     if(this.lastData.length >= 60) {
-      this.lastData.forEach((pModel) {
-        _service.write(pModel.fmtToInfluxData());
-      });
+      _service.write(this.lastData.fmtToInfluxData());
       this.lastData.clear();
     } else {
-      this.lastData.add(model);
+      this.lastData.addModel(model);
     }
   }
 
