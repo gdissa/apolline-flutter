@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
     package="com.science.apollineflutter">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -11,8 +12,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:name="io.flutter.app.FlutterApplication"
+        android:name=".Application"
         android:label="apollineflutter"
+        tools:replace="android:label"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

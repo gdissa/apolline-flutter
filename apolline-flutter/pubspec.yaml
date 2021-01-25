@@ -36,6 +36,8 @@ dependencies:
   geohash: ^0.2.1
   # location
   geolocator: ^6.1.13
+  # background fetch
+  background_fetch : ^0.2.0
 
 dev_dependencies:
   flutter_test:
