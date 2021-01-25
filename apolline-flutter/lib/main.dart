@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:workmanager/workmanager.dart';
 import 'bluetoothDevicesPage.dart';
 import 'services/service_locator.dart';
@@ -33,6 +34,15 @@ void main() {
     // Minimum frequency is 15 min. Android will automatically change your frequency to 15 min if you have configured a lower frequency.
     frequency: Duration(minutes: 15),
   );
+
+import 'package:global_configuration/global_configuration.dart';
+
+import 'bluetoothDevicesPage.dart';
+import 'services/service_locator.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await GlobalConfiguration().loadFromAsset("config_dev.json");
   setupServiceLocator();
   runApp(ApollineApp());
 }
