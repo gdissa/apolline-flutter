@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/services/influxdb_client.dart';
+import 'package:apollineflutter/models/sensor_collection.dart';
 
 import 'services/realtime_data_service.dart';
 import 'services/service_locator.dart';
@@ -33,13 +34,12 @@ class _SensorViewState extends State<SensorView> {
   String buf = "";
   SensorModel lastReceivedData;
   bool initialized = false;
-  StreamSubscription
-      subBluetoothState; //used for remove listening value to sensor
+  StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
+  SensorCollection lastData = SensorCollection();
 
-  List<StreamSubscription> subs =
-      []; //used for remove listening value to sensor
+  List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
   bool showErrorAction = false;
   Timer timer;
@@ -62,38 +62,32 @@ class _SensorViewState extends State<SensorView> {
       print("Got full line: " + buf);
       List<String> values = buf.split(';');
       var position = this._currentPosition ?? Position();
-      /* Split values in a parseable format, and send them to the UI */
-      if (!initialized) {
-        _sqfLiteSerive.database;
-        _service.ping().then((_) {
-          _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
-            sensormodels.forEach((sensormodel) {
-              _service.write(sensormodel.fmtToInfluxData());
-            });
-          });
-
-        }).catchError((error) {
-
-        });
-
-        setState(() {
-          initialized = true;
-        });
-      }
-      /* add new values in stream */
+      
+      var model = SensorModel(values: values, device: SensorDevice(widget.device), position: position);
       _dataService.update(values);
-      /* Perform additional handling here */
+      this.updateOrWriteData(model);
+      
+      setState(() {
+        lastReceivedData = model;
+        initialized = true;
+
+        /* Perform additional handling here */
+      });
       buf = "";
-      lastReceivedData = SensorModel(
-          values: values,
-          device: SensorDevice(widget.device),
-          position: position);
-        _service.ping().then((value) {
-            _service.write(lastReceivedData.fmtToInfluxData());
-         }).catchError((error){
-              /* insert data in sqflite */
-              _sqfLiteSerive.insert(lastReceivedData.toJSON());
-         });
+    }
+  }
+
+  void updateOrWriteData(SensorModel model) {
+    if(this.lastData.length >= 60) {
+      _service.ping().then((value) {
+        _service.write(this.lastData.fmtToInfluxData());
+      }).catchError((error){
+        /* insert data in sqflite */
+       _sqfLiteSerive.insertAll(this.lastData);
+      });
+      this.lastData.clear();
+    } else {
+      this.lastData.addModel(model);
     }
   }
 
