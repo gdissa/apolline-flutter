@@ -131,7 +131,7 @@ class SqfLiteService {
   }
 
   // SQL delete all data
-  Future<int> deleteAllData(int id) async {
+  Future<int> deleteAllData() async {
     Database db = await database;
     return await db.delete(tableSensorModel);
   }

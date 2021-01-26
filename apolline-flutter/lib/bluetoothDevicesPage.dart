@@ -43,13 +43,16 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
 
 /* Send data to influxDB */
   void _sendDataToInfluxDB() {
-      _service.ping().then((value) {
+    _service.ping().then((value) {
+      //Search data in sqfLite to insert it in influxDB
       _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
-          sensormodels.forEach((sensormodel) {
+        sensormodels.forEach((sensormodel) {
           _service.write(sensormodel.fmtToInfluxData());
-          });
         });
-      }).catchError((error){});
+        //to remove data in sqflite after insertion in influxDB
+        _sqfLiteSerive.deleteAllData();
+      });
+    }).catchError((error) {});
   }
 
   ///
@@ -98,9 +101,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
       });
     });
 
-    widget.flutterBlue.connectedDevices
-        .asStream()
-        .listen((List<BluetoothDevice> ds) {
+    widget.flutterBlue.connectedDevices.asStream().listen((List<BluetoothDevice> ds) {
       for (BluetoothDevice device in ds) {
         setState(() {
           pairedDevices.putIfAbsent(device.id.toString(), () => device);
@@ -123,8 +124,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
     });
   }
 
-  void _addWidgetDevices(Map<String, BluetoothDevice> devices, List<Widget> l,
-      Function(List<Widget>, BluetoothDevice) cond) {
+  void _addWidgetDevices(Map<String, BluetoothDevice> devices, List<Widget> l, Function(List<Widget>, BluetoothDevice) cond) {
     devices.forEach((id, d) {
       if (cond(l, d))
         l.add(Card(
@@ -200,8 +200,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
     } else {
       return <Widget>[
         SizedBox(
-          child: CircularProgressIndicator(
-              backgroundColor: Colors.blue), //TODO choisir une meilleur couleur
+          child: CircularProgressIndicator(backgroundColor: Colors.blue), //TODO choisir une meilleur couleur
           width: 20,
           height: 20,
         ),

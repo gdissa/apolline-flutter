@@ -62,11 +62,11 @@ class _SensorViewState extends State<SensorView> {
       print("Got full line: " + buf);
       List<String> values = buf.split(';');
       var position = this._currentPosition ?? Position();
-      
+
       var model = SensorModel(values: values, device: SensorDevice(widget.device), position: position);
       _dataService.update(values);
       this.updateOrWriteData(model);
-      
+
       setState(() {
         lastReceivedData = model;
         initialized = true;
@@ -78,13 +78,13 @@ class _SensorViewState extends State<SensorView> {
   }
 
   void updateOrWriteData(SensorModel model) {
-    if(this.lastData.length >= 60) {
-      _service.ping().then((value) {
+    if (this.lastData.length >= 60) {
+      try{
         _service.write(this.lastData.fmtToInfluxData());
-      }).catchError((error){
+      }catch(err){
         /* insert data in sqflite */
-       _sqfLiteSerive.insertAll(this.lastData);
-      });
+        _sqfLiteSerive.insertAll(this.lastData);
+      }
       this.lastData.clear();
     } else {
       this.lastData.addModel(model);
@@ -123,17 +123,14 @@ class _SensorViewState extends State<SensorView> {
   }
 
   void handleServiceDiscovered(BluetoothService service) {
-    if (service.uuid.toString().toLowerCase() ==
-        BlueSensorAttributes.DustSensorServiceUUID) {
+    if (service.uuid.toString().toLowerCase() == BlueSensorAttributes.DustSensorServiceUUID) {
       updateState("Blue Sensor Dust Sensor found - configuring characteristic");
       var characteristics = service.characteristics;
 
       /* Search for the Dust Sensor characteristic */
       for (BluetoothCharacteristic c in characteristics) {
-        if (c.uuid.toString().toLowerCase() ==
-            BlueSensorAttributes.DustSensorCharacteristicUUID) {
-          updateState("Characteristic found - reading, NOtification flag is " +
-              c.properties.notify.toString());
+        if (c.uuid.toString().toLowerCase() == BlueSensorAttributes.DustSensorCharacteristicUUID) {
+          updateState("Characteristic found - reading, NOtification flag is " + c.properties.notify.toString());
 
           /* Enable notification */
           updateState("Enable notification");
@@ -354,13 +351,11 @@ class _SensorViewState extends State<SensorView> {
                   ),
                   title: Text('Apolline'),
                 ),
-                body: TabBarView(
-                    physics: NeverScrollableScrollPhysics(),
-                    children: [
-                      Quality(lastReceivedData: lastReceivedData),
-                      Stats(dataSensor: lastReceivedData),
-                      MapSample(),
-                    ])),
+                body: TabBarView(physics: NeverScrollableScrollPhysics(), children: [
+                  Quality(lastReceivedData: lastReceivedData),
+                  Stats(dataSensor: lastReceivedData),
+                  MapSample(),
+                ])),
           ),
         ),
       );
