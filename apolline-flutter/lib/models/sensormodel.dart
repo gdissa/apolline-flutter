@@ -29,6 +29,7 @@ class SensorModel {
   static const int SENSOR_PM_ABOVE_10 = 9;
   SensorDevice device;
   int _date;
+  int id;
   Position position;
 
   /* Values received, parsed through a comma-separated string */
@@ -43,7 +44,7 @@ class SensorModel {
   ///
   ///constructor of senorModel with date.
   // ignore: non_constant_identifier_names
-  SensorModel.withDate({this.values, this.device, this.position, date}) {
+  SensorModel.bdd({this.id, this.values, this.device, this.position, date}) {
     this._date = date;
   }
 
@@ -115,7 +116,7 @@ class SensorModel {
     json["provider"] = this.position?.provider ?? "no";
     json["geohash"] = this.position?.geohash ?? "no";
     json["transport"] = this.position?.transport ?? "no";
-    json["dateSynchro"] = this._date;
+    json["date"] = this._date;
     json["value"] = this.values.join('|');
     return json;
   }
@@ -123,9 +124,10 @@ class SensorModel {
   // ignore: non_constant_identifier_names
   // create object from Json
   SensorModel.fromJson(Map<String, dynamic> json)
-      : this.withDate(
+      : this.bdd(
+            id: json['id'],
             values: json['value'].split('|'),
             device: SensorDevice.fromNameAndUId(json['name'], json['uuid']),
             position: Position(geohash: json['geohash'], provider: json['provider'], transport: json['transport']),
-            date: json['dateSynchro']);
+            date: json['date']);
 }

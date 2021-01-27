@@ -36,7 +36,7 @@ class InfluxDBAPI {
   ///
   ///write data to influx database
   void write(String data) async {
-    client.postSilent("$_connectionString/write?db=$_db&u=$_username&p=$_password", body: data);
+    await client.postSilent("$_connectionString/write?db=$_db&u=$_username&p=$_password", body: data);
   }
 
   ///

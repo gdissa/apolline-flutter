@@ -20,13 +20,14 @@ class SqfLiteService {
   static final columnProvider = 'provider';
   static final columnGeohash = 'geohash';
   static final columnTransport = 'transport';
-  static final columnDate = 'dateSynchro';
+  static final columnDate = 'date';
+  static final columnSynchro = 'synchronisation';
   static final columnValues = 'value';
 
   // database table date and column names
-  static final tableDateModel = 'DateSynchronisation';
-  static final colId = 'id';
-  static final colDate = 'DateSynchro';
+  // static final tableDateModel = 'DateSynchronisation';
+  // static final colId = 'id';
+  // static final colDate = 'DateSynchro';
 
   // Make this a singleton class.
   SqfLiteService._privateConstructor();
@@ -65,17 +66,18 @@ class SqfLiteService {
             $columnTransport TEXT NOT NULL,
             $columnGeohash TEXT NOT NULL,
             $columnDate INTEGER NOT NULL,
+            $columnSynchro INTEGER NOT NULL DEFAULT 0,
             $columnValues TEXT NOT NULL
           )
           ''';
-    String queryDate = '''
-          CREATE TABLE $tableDateModel (
-            $colId INTEGER PRIMARY KEY,
-            $colDate INTEGER
-          )
-          ''';
+
+    // String queryDate = '''
+    //       CREATE TABLE $tableDateModel (
+    //         $colId INTEGER PRIMARY KEY,
+    //         $colDate INTEGER
+    //       )
+    //       ''';
     await db.execute(querySensor);
-    await db.execute(queryDate);
   }
 
   // SQL save SensorModel
@@ -147,11 +149,11 @@ class SqfLiteService {
   }
 
   // SQL get all SensorModelNotSynchro data
-  Future<List<SensorModel>> getAllSensorModelsNotSyncro(int dateSynchro) async {
+  Future<List<SensorModel>> getAllSensorModelsNotSyncro() async {
     Database db = await database;
     List<SensorModel> sensdorModels = [];
     List<Map> maps = await db.query(tableSensorModel,
-        columns: [columnId, columnDeviceName, columnUuid, columnProvider, columnGeohash, columnTransport, columnValues], where: '$columnDate >= ?', whereArgs: [dateSynchro]);
+        columns: [columnId, columnDeviceName, columnUuid, columnProvider, columnGeohash, columnTransport, columnDate, columnValues], where: '$columnSynchro == ?', whereArgs: [0]);
     if (maps.length > 0) {
       maps.forEach((map) => sensdorModels.add(SensorModel.fromJson(map)));
       return sensdorModels;
@@ -159,30 +161,23 @@ class SqfLiteService {
     return sensdorModels;
   }
 
-  // SQL get last DateSynchro
-  Future<int> getLastDateSynchro() async {
-    Database db = await database;
-    String query = ''' SELECT * FROM $tableDateModel ORDER BY $colId DESC LIMIT 1''';
-    var resultSet = await db.rawQuery(query);
-    return resultSet.isNotEmpty ? resultSet.first['$colId'] : -1;
-    // if(resultSet.isNotEmpty){
-    //   var dbItem = resultSet.first;
-    //   return dbItem['$colId'];
-    // }else{
-    //   return -1;
-    // }
-  }
 
-  // SQL save DateSynchronisationModel
-  Future<Map<String, dynamic>> insertDateSynchro(Map<String, dynamic> dateSynchromodel) async {
+  // SQL update Sensor colunm synchronisation
+  Future updateSensorSynchronisation(List<int> ids) async {
     Database db = await database;
-    // ignore: unused_local_variable
-    var id = await db.insert(tableDateModel, dateSynchromodel);
-    return dateSynchromodel;
+    // ignore: unused_local_variable.
+    String inClause = ids.toString();
+    //at this point inClause will look like "[1,2,3,4,5]"
+    //replace the brackets with parentheses
+    inClause = inClause.replaceFirst("[","(");
+    inClause = inClause.replaceFirst("]",")");
+    //at this point inClause will look like "(1,2,3,4,5)"
+    String query = ''' UPDATE $tableSensorModel SET $columnSynchro = 1 WHERE id IN '''+inClause;
+    await db.execute(query);
   }
 
   // SQL delete all data
-  Future<int> deleteAllData() async {
+  Future<int> deleteAllSensorData() async {
     Database db = await database;
     return await db.delete(tableSensorModel);
   }

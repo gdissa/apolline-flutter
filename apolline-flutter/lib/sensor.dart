@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/services/influxdb_client.dart';
-
-import 'models/dateSynchromodel.dart';
 import 'models/sensormodel.dart';
 import 'services/realtime_data_service.dart';
 import 'services/service_locator.dart';
@@ -37,7 +35,6 @@ class _SensorViewState extends State<SensorView> {
   StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
-  int dateSyncro;
 
   List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
@@ -65,10 +62,6 @@ class _SensorViewState extends State<SensorView> {
     initializeDevice();
     initializeLocation();
     synchronizeData();
-    // last date synchronisation
-    dateSyncro = DateTime.now().microsecondsSinceEpoch;
-    var model = DateSynchromodel(date: dateSyncro);
-    _sqfLiteService.insertDateSynchro(model.toJSON());
     //synchronisation data
     this.timerSynchro = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
   }
@@ -99,35 +92,20 @@ class _SensorViewState extends State<SensorView> {
   }
 
   void synchronizeData() {
-    int newDateSynchro;
-    _sqfLiteService.getLastDateSynchro().then((dateSynchro) {
-      if (dateSynchro != -1) {
-        _sqfLiteService.getAllSensorModelsNotSyncro(dateSynchro).then((sensormodels) {
-          // inset all in influxDB
-          _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
-          // get last Date
-          newDateSynchro = sensormodels.last.date;
-          var model = DateSynchromodel(date: newDateSynchro);
-          // insert last Date
-          _sqfLiteService.insertDateSynchro(model.toJSON());
+    _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) async {
+      try {
+        // inset all in influxDB
+        await _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
+        List<int> ids = [];
+        sensormodels.forEach((sensormodel) {
+          ids.add(sensormodel.id);
         });
+        _sqfLiteService.updateSensorSynchronisation(ids);
+      } catch (err) {
+        print("influx not running");
       }
     });
   }
-
-  // void updateOrWriteData(SensorModel model) {
-  //   if (this.lastData.length >= 60) {
-  //     try {
-  //       _service.write(this.lastData.fmtToInfluxData());
-  //     } catch (err) {
-  //       /* insert data in sqflite */
-  //       _sqfLiteService.insertAll(this.lastData);
-  //     }
-  //     this.lastData.clear();
-  //   } else {
-  //     this.lastData.addModel(model);
-  //   }
-  // }
 
   void updateState(String st) {
     print(st);
