@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:core';
 
+import 'package:apollineflutter/models/sensormodel.dart';
 import 'package:apollineflutter/services/realtime_data_service.dart';
 import 'package:apollineflutter/services/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ import 'package:mp_chart/mp/core/enums/axis_dependency.dart';
 import 'package:mp_chart/mp/core/enums/x_axis_position.dart';
 import 'package:mp_chart/mp/core/highlight/highlight.dart';
 import 'package:mp_chart/mp/core/utils/color_utils.dart';
-import 'package:apollineflutter/sensormodel.dart';
 import 'package:mp_chart/mp/core/value_formatter/value_formatter.dart';
 
 class Stats extends StatefulWidget {

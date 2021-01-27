@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:apollineflutter/gattsample.dart';
-import 'package:apollineflutter/sensormodel.dart';
 import 'package:apollineflutter/services/sqflite_service.dart';
 import 'package:apollineflutter/utils/position.dart';
 import 'package:apollineflutter/services/location_service.dart';
@@ -12,6 +11,8 @@ import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/services/influxdb_client.dart';
 import 'package:apollineflutter/models/sensor_collection.dart';
 
+import 'models/dateSynchromodel.dart';
+import 'models/sensormodel.dart';
 import 'services/realtime_data_service.dart';
 import 'services/service_locator.dart';
 import 'widgets/maps.dart';
@@ -37,7 +38,7 @@ class _SensorViewState extends State<SensorView> {
   StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
-  SensorCollection lastData = SensorCollection();
+  int dateSyncro;
 
   List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
@@ -48,10 +49,27 @@ class _SensorViewState extends State<SensorView> {
   // use for influxDB to send data to the back
   InfluxDBAPI _service = InfluxDBAPI();
   // use for sqfLite to save data in local
-  SqfLiteService _sqfLiteSerive = SqfLiteService();
+  SqfLiteService _sqfLiteService = SqfLiteService();
   Position _currentPosition;
 
   RealtimeDataService _dataService = locator<RealtimeDataService>();
+
+  void initializeLocation() {
+    this.subLocation = SimpleLocationService().locationStream.listen((p) {
+      this._currentPosition = p;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDevice();
+    initializeLocation();
+    dateSyncro = DateTime.now().microsecondsSinceEpoch;
+    var model = DateSynchromodel(date: dateSyncro);
+    _sqfLiteService.insertDateSynchro(model.toJSON());
+    timer = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
+  }
 
   /* Called when data is received from the sensor */
   void _handleCharacteristicUpdate(List<int> value) {
@@ -65,7 +83,8 @@ class _SensorViewState extends State<SensorView> {
 
       var model = SensorModel(values: values, device: SensorDevice(widget.device), position: position);
       _dataService.update(values);
-      this.updateOrWriteData(model);
+      /* insert to sqflite */
+      _sqfLiteService.insertSensor(model.toJSON());
 
       setState(() {
         lastReceivedData = model;
@@ -77,19 +96,34 @@ class _SensorViewState extends State<SensorView> {
     }
   }
 
-  void updateOrWriteData(SensorModel model) {
-    if (this.lastData.length >= 60) {
-      try{
-        _service.write(this.lastData.fmtToInfluxData());
-      }catch(err){
-        /* insert data in sqflite */
-        _sqfLiteSerive.insertAll(this.lastData);
-      }
-      this.lastData.clear();
-    } else {
-      this.lastData.addModel(model);
-    }
+  void synchronizeData() {
+     int newDateSynchro;
+    _sqfLiteService.getLastDateSynchro().then((dateSynchro) {
+      _sqfLiteService.queryAllSensorModelsNotSyncro(dateSynchro).then((sensormodels) {
+        // inset all in influxDB
+          _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
+          // get last Date
+          newDateSynchro = sensormodels.last.date;
+        var model = DateSynchromodel(date: newDateSynchro);
+        // insert last Date
+        _sqfLiteService.insertDateSynchro(model.toJSON());
+      });
+    });
   }
+
+  // void updateOrWriteData(SensorModel model) {
+  //   if (this.lastData.length >= 60) {
+  //     try {
+  //       _service.write(this.lastData.fmtToInfluxData());
+  //     } catch (err) {
+  //       /* insert data in sqflite */
+  //       _sqfLiteService.insertAll(this.lastData);
+  //     }
+  //     this.lastData.clear();
+  //   } else {
+  //     this.lastData.addModel(model);
+  //   }
+  // }
 
   void updateState(String st) {
     print(st);
@@ -256,19 +290,6 @@ class _SensorViewState extends State<SensorView> {
       listenDeviceState();
       handleDeviceConnect(widget.device);
     }
-  }
-
-  void initializeLocation() {
-    this.subLocation = SimpleLocationService().locationStream.listen((p) {
-      this._currentPosition = p;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    initializeDevice();
-    initializeLocation();
   }
 
   ///

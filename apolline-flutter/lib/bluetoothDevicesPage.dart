@@ -37,22 +37,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
   @override
   void initState() {
     super.initState();
-    _sendDataToInfluxDB();
     initializeDevice();
-  }
-
-/* Send data to influxDB */
-  void _sendDataToInfluxDB() {
-    _service.ping().then((value) {
-      //Search data in sqfLite to insert it in influxDB
-      _sqfLiteSerive.queryAllSensorModels().then((sensormodels) {
-        sensormodels.forEach((sensormodel) {
-          _service.write(sensormodel.fmtToInfluxData());
-        });
-        //to remove data in sqflite after insertion in influxDB
-        _sqfLiteSerive.deleteAllData();
-      });
-    }).catchError((error) {});
   }
 
   ///

@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:apollineflutter/models/sensor_collection.dart';
+import 'package:apollineflutter/models/sensormodel.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:apollineflutter/sensormodel.dart';
 
 // Author GDISSA Ramy
 // Sqflite Database
@@ -12,7 +12,7 @@ class SqfLiteService {
   static final _databaseName = "apolline.db";
   // Increment this version when you need to change the schema.
   static final _databaseVersion = 1;
-  // database table and column names
+  // database table sensor and column names
   static final tableSensorModel = 'SensorModel';
   static final columnId = 'id';
   static final columnDeviceName = 'deviceName';
@@ -20,7 +20,13 @@ class SqfLiteService {
   static final columnProvider = 'provider';
   static final columnGeohash = 'geohash';
   static final columnTransport = 'transport';
+  static final columnDate = 'dateSynchro';
   static final columnValues = 'value';
+
+  // database table date and column names
+  static final tableDateModel = 'DateSynchronisation';
+  static final colId = 'id';
+  static final colDate = 'DateSynchro';
 
   // Make this a singleton class.
   SqfLiteService._privateConstructor();
@@ -50,7 +56,7 @@ class SqfLiteService {
 
   // SQL string to create the database
   Future _onCreate(Database db, int version) async {
-    String query = '''
+    String querySensor = '''
           CREATE TABLE $tableSensorModel (
             $columnId INTEGER PRIMARY KEY,
             $columnDeviceName TEXT NOT NULL,
@@ -58,14 +64,22 @@ class SqfLiteService {
             $columnProvider TEXT NOT NULL,
             $columnTransport TEXT NOT NULL,
             $columnGeohash TEXT NOT NULL,
+            $columnDate INTEGER NOT NULL,
             $columnValues TEXT NOT NULL
           )
           ''';
-    await db.execute(query);
+    String queryDate = '''
+          CREATE TABLE $tableDateModel (
+            $colId INTEGER PRIMARY KEY,
+            $colDate INTEGER
+          )
+          ''';
+    await db.execute(querySensor);
+    await db.execute(queryDate);
   }
 
   // SQL save SensorModel
-  Future<Map<String, dynamic>> insert(Map<String, dynamic> sensormodel) async {
+  Future<Map<String, dynamic>> insertSensor(Map<String, dynamic> sensormodel) async {
     Database db = await database;
     // ignore: unused_local_variable
     var id = await db.insert(tableSensorModel, sensormodel);
@@ -73,7 +87,7 @@ class SqfLiteService {
   }
 
   // SQL save SensorModel
-  Future<int> insertAll(SensorCollection sensorCollection) async {
+  Future<int> insertAllSensor(SensorCollection sensorCollection) async {
     Database db = await database;
     // ignore: unused_local_variable
     var buffer = new StringBuffer();
@@ -93,6 +107,8 @@ class SqfLiteService {
       buffer.write("', '");
       buffer.write(json["transport"]);
       buffer.write("', '");
+      buffer.write(json["dateSynchro"]);
+      buffer.write("', '");
       buffer.write(json["value"]);
       buffer.write("')");
     });
@@ -100,13 +116,13 @@ class SqfLiteService {
     //   await db.insert(tableSensorModel, element.toJSON());
     //});
     //var id = await db.insert(tableSensorModel, sensorCollection);
-    var raw = await db.rawInsert("INSERT Into $tableSensorModel ($columnDeviceName, $columnUuid, $columnProvider, $columnTransport, $columnGeohash, $columnValues ) "
-            " VALUES ${buffer.toString()}");
+    var raw = await db.rawInsert("INSERT Into $tableSensorModel ($columnDeviceName, $columnUuid, $columnProvider, $columnTransport, $columnGeohash, $columnDate, $columnValues ) "
+        " VALUES ${buffer.toString()}");
     return raw;
   }
 
   // SQL get SensorModel data by uuid
-  Future<List<SensorModel>> querySensorModelByUuid(String uuid) async {
+  Future<List<SensorModel>> getSensorModelByUuid(String uuid) async {
     Database db = await database;
     List<SensorModel> sensdorModels = [];
     List<Map> maps = await db.query(tableSensorModel,
@@ -119,7 +135,7 @@ class SqfLiteService {
   }
 
   // SQL get all SensorModel data
-  Future<List<SensorModel>> queryAllSensorModels() async {
+  Future<List<SensorModel>> getAllSensorModels() async {
     Database db = await database;
     List<SensorModel> sensdorModels = [];
     List<Map> maps = await db.query(tableSensorModel);
@@ -128,6 +144,37 @@ class SqfLiteService {
       return sensdorModels;
     }
     return sensdorModels;
+  }
+
+  // SQL get all SensorModelNotSynchro data
+  Future<List<SensorModel>> queryAllSensorModelsNotSyncro(int dateSynchro) async {
+    Database db = await database;
+    List<SensorModel> sensdorModels = [];
+    List<Map> maps = await db.query(tableSensorModel,
+        columns: [columnId, columnDeviceName, columnUuid, columnProvider, columnGeohash, columnTransport, columnValues], where: '$columnDate >= ?', whereArgs: [dateSynchro]);
+    if (maps.length > 0) {
+      maps.forEach((map) => sensdorModels.add(SensorModel.fromJson(map)));
+      return sensdorModels;
+    }
+    return sensdorModels;
+  }
+
+  // SQL get last DateSynchro
+  Future<int> getLastDateSynchro() async {
+    Database db = await database;
+    String query = ''' SELECT * FROM $tableDateModel ORDER BY $colId DESC LIMIT 1''';
+    var resultSet = await db.rawQuery(query);
+    var dbItem = resultSet.first;
+
+    return dbItem['$colId'];
+  }
+
+  // SQL save DateSynchronisationModel
+  Future<Map<String, dynamic>> insertDateSynchro(Map<String, dynamic> dateSynchromodel) async {
+    Database db = await database;
+    // ignore: unused_local_variable
+    var id = await db.insert(tableDateModel, dateSynchromodel);
+    return dateSynchromodel;
   }
 
   // SQL delete all data
