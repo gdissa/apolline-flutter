@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/services/influxdb_client.dart';
-import 'package:apollineflutter/models/sensor_collection.dart';
 
 import 'models/dateSynchromodel.dart';
 import 'models/sensormodel.dart';
@@ -43,7 +42,7 @@ class _SensorViewState extends State<SensorView> {
   List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
   bool showErrorAction = false;
-  Timer timer;
+  Timer timer, timerSynchro;
   ConnexionType connectType = ConnexionType.Normal;
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   // use for influxDB to send data to the back
@@ -65,10 +64,13 @@ class _SensorViewState extends State<SensorView> {
     super.initState();
     initializeDevice();
     initializeLocation();
+    synchronizeData();
+    // last date synchronisation
     dateSyncro = DateTime.now().microsecondsSinceEpoch;
     var model = DateSynchromodel(date: dateSyncro);
     _sqfLiteService.insertDateSynchro(model.toJSON());
-    timer = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
+    //synchronisation data
+    this.timerSynchro = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
   }
 
   /* Called when data is received from the sensor */
@@ -97,17 +99,19 @@ class _SensorViewState extends State<SensorView> {
   }
 
   void synchronizeData() {
-     int newDateSynchro;
+    int newDateSynchro;
     _sqfLiteService.getLastDateSynchro().then((dateSynchro) {
-      _sqfLiteService.queryAllSensorModelsNotSyncro(dateSynchro).then((sensormodels) {
-        // inset all in influxDB
+      if (dateSynchro != -1) {
+        _sqfLiteService.getAllSensorModelsNotSyncro(dateSynchro).then((sensormodels) {
+          // inset all in influxDB
           _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
           // get last Date
           newDateSynchro = sensormodels.last.date;
-        var model = DateSynchromodel(date: newDateSynchro);
-        // insert last Date
-        _sqfLiteService.insertDateSynchro(model.toJSON());
-      });
+          var model = DateSynchromodel(date: newDateSynchro);
+          // insert last Date
+          _sqfLiteService.insertDateSynchro(model.toJSON());
+        });
+      }
     });
   }
 
@@ -305,6 +309,7 @@ class _SensorViewState extends State<SensorView> {
     this.subBluetoothState?.cancel();
     this.subLocation?.cancel();
     widget.device.disconnect();
+    this.timerSynchro?.cancel();
     super.dispose();
   }
 

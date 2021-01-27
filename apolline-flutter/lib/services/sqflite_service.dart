@@ -147,7 +147,7 @@ class SqfLiteService {
   }
 
   // SQL get all SensorModelNotSynchro data
-  Future<List<SensorModel>> queryAllSensorModelsNotSyncro(int dateSynchro) async {
+  Future<List<SensorModel>> getAllSensorModelsNotSyncro(int dateSynchro) async {
     Database db = await database;
     List<SensorModel> sensdorModels = [];
     List<Map> maps = await db.query(tableSensorModel,
@@ -164,9 +164,13 @@ class SqfLiteService {
     Database db = await database;
     String query = ''' SELECT * FROM $tableDateModel ORDER BY $colId DESC LIMIT 1''';
     var resultSet = await db.rawQuery(query);
-    var dbItem = resultSet.first;
-
-    return dbItem['$colId'];
+    return resultSet.isNotEmpty ? resultSet.first['$colId'] : -1;
+    // if(resultSet.isNotEmpty){
+    //   var dbItem = resultSet.first;
+    //   return dbItem['$colId'];
+    // }else{
+    //   return -1;
+    // }
   }
 
   // SQL save DateSynchronisationModel
