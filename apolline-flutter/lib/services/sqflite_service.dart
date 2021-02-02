@@ -84,7 +84,7 @@ class SqfLiteService {
   Future<Map<String, dynamic>> insertSensor(Map<String, dynamic> sensormodel) async {
     Database db = await database;
     // ignore: unused_local_variable
-    var id = await db.insert(tableSensorModel, sensormodel);
+    var id = db.insert(tableSensorModel, sensormodel);
     return sensormodel;
   }
 

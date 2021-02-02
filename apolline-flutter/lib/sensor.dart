@@ -61,7 +61,7 @@ class _SensorViewState extends State<SensorView> {
     super.initState();
     initializeDevice();
     initializeLocation();
-    synchronizeData();
+    //synchronizeData();
     //synchronisation data
     this.timerSynchro = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
   }
@@ -95,7 +95,7 @@ class _SensorViewState extends State<SensorView> {
     _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) async {
       try {
         // inset all in influxDB
-        await _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
+        _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
         List<int> ids = [];
         sensormodels.forEach((sensormodel) {
           ids.add(sensormodel.id);

@@ -35,14 +35,14 @@ class InfluxDBAPI {
   
   ///
   ///write data to influx database
-  void write(String data) async {
-    await client.postSilent("$_connectionString/write?db=$_db&u=$_username&p=$_password", body: data);
+  void write(String data) {
+    client.postSilent("$_connectionString/write?db=$_db&u=$_username&p=$_password", body: data);
   }
 
   ///
   ///check the address [address].
-  Future<void> ping() async {
-    await client.pingSilent("$_pingUrl"); //utilisation de /health car la v2.0 le contient déjà. actu sur v1.8.x
+  Future<void> ping() {
+   client.pingSilent("$_pingUrl"); //utilisation de /health car la v2.0 le contient déjà. actu sur v1.8.x
   }
 
 }
