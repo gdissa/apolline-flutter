@@ -92,18 +92,29 @@ class _SensorViewState extends State<SensorView> {
   }
 
   void synchronizeData() {
-    _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) async {
-      try {
-        // inset all in influxDB
-        _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
+    _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) {
+      
+      _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels))
+      .then((_) {
         List<int> ids = [];
         sensormodels.forEach((sensormodel) {
           ids.add(sensormodel.id);
         });
         _sqfLiteService.updateSensorSynchronisation(ids);
-      } catch (err) {
-        print("influx not running");
-      }
+      }).catchError((error) {
+        print(error);
+      });
+      // try {
+      //   // inset all in influxDB
+      //   _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
+      //   List<int> ids = [];
+      //   sensormodels.forEach((sensormodel) {
+      //     ids.add(sensormodel.id);
+      //   });
+      //   _sqfLiteService.updateSensorSynchronisation(ids);
+      // } catch (err) {
+      //   print("influx not running");
+      // }
     });
   }
 
