@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:apollineflutter/services/service_locator.dart';
+import 'package:apollineflutter/models/user_configuration.dart';
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -45,10 +47,12 @@ class MapUiBodyState extends State<MapUiBody> {
   bool _myLocationButtonEnabled = true;
   GoogleMapController _controller;
   bool _nightMode = false;
+  UserConfiguration uConf = locator<UserConfiguration>();
 
   @override
   void initState() {
     super.initState();
+    uConf.mapSyncFrequency = 0;
   }
 
   @override
