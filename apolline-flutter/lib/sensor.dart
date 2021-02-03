@@ -90,15 +90,18 @@ class _SensorViewState extends State<SensorView> {
     }
   }
 
+  // Synchronsation data sensor
   void synchronizeData() {
+    // find all data not synchronisation
     _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) {
-      
+      //Send data to influxDB
       _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels))
       .then((_) {
         List<int> ids = [];
         sensormodels.forEach((sensormodel) {
           ids.add(sensormodel.id);
         });
+        //Update data in sqfLite
         _sqfLiteService.updateSensorSynchronisation(ids);
       }).catchError((error) {
         print(error);
