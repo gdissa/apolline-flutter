@@ -61,7 +61,6 @@ class _SensorViewState extends State<SensorView> {
     super.initState();
     initializeDevice();
     initializeLocation();
-    //synchronizeData();
     //synchronisation data
     this.timerSynchro = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
   }
@@ -103,18 +102,7 @@ class _SensorViewState extends State<SensorView> {
         _sqfLiteService.updateSensorSynchronisation(ids);
       }).catchError((error) {
         print(error);
-      });
-      // try {
-      //   // inset all in influxDB
-      //   _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
-      //   List<int> ids = [];
-      //   sensormodels.forEach((sensormodel) {
-      //     ids.add(sensormodel.id);
-      //   });
-      //   _sqfLiteService.updateSensorSynchronisation(ids);
-      // } catch (err) {
-      //   print("influx not running");
-      // }
+      });    
     });
   }
 
