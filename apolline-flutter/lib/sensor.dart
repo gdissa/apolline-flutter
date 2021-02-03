@@ -205,10 +205,10 @@ class _SensorViewState extends State<SensorView> {
   ///
   ///Function to be executed after disconnection
   void postDisconnect() {
-    isConnected = false;
     buf = "";
-    connectType = ConnexionType.Disconnect; //deconnexion
     this.destroyStream();
+    isConnected = false;
+    connectType = ConnexionType.Disconnect; //deconnexion
     setState(() {
       showErrorAction = true;
     });
@@ -240,10 +240,12 @@ class _SensorViewState extends State<SensorView> {
       if (state == BluetoothDeviceState.disconnecting) {
         /*TODO: detectecter quand cela arrive */
       } else if (state == BluetoothDeviceState.disconnected) {
+        print("--------------------disconnected--------------");
         postDisconnect();
       } else if (state == BluetoothDeviceState.connected) {
         print("--------------------connected--------------");
         if (connectType == ConnexionType.Disconnect && !isConnected) {
+          print("-------------------connectedExécute---------");
           postConnect();
         }
       } else {
