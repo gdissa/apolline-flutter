@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:apollineflutter/gattsample.dart';
 import 'package:apollineflutter/services/sqflite_service.dart';
@@ -35,6 +36,9 @@ class _SensorViewState extends State<SensorView> {
   StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
+  //used to get data not synchro
+  int offset = 0;
+  int limit = 150;
 
   List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
@@ -62,7 +66,7 @@ class _SensorViewState extends State<SensorView> {
     initializeDevice();
     initializeLocation();
     //synchronisation data
-    this.timerSynchro = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
+    this.timerSynchro = Timer.periodic(Duration(seconds: 120), (Timer t) => synchronizeData());
   }
 
   /* Called when data is received from the sensor */
@@ -92,21 +96,29 @@ class _SensorViewState extends State<SensorView> {
 
   // Synchronsation data sensor
   void synchronizeData() {
-    // find all data not synchronisation
-    _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) {
-      //Send data to influxDB
-      _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels))
-      .then((_) {
-        List<int> ids = [];
-        sensormodels.forEach((sensormodel) {
-          ids.add(sensormodel.id);
-        });
-        //Update data in sqfLite
-        _sqfLiteService.updateSensorSynchronisation(ids);
-      }).catchError((error) {
-        print(error);
-      });    
-    });
+    bool exitModel = true;
+    while (exitModel) {
+      // find all data not synchronisation
+      _sqfLiteService.getAllSensorModelsNotSyncro(limit, offset).then((sensormodels) {
+        if (sensormodels.length == 0) {
+          exitModel = false;
+          offset = 0;
+        } else {
+          offset = offset + limit;
+          //Send data to influxDB
+          _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels)).then((_) {
+            List<int> ids = [];
+            sensormodels.forEach((sensormodel) {
+              ids.add(sensormodel.id);
+            });
+            //Update data in sqfLite
+            _sqfLiteService.updateSensorSynchronisation(ids);
+          }).catchError((error) {
+            print(error);
+          });
+        }
+      });
+    }
   }
 
   void updateState(String st) {
