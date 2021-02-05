@@ -1,8 +1,12 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:apollineflutter/services/service_locator.dart';
 import 'package:apollineflutter/models/user_configuration.dart';
+import 'package:apollineflutter/services/sqflite_service.dart';
+import 'package:apollineflutter/utils/simple_geohash.dart';
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -49,9 +53,19 @@ class MapUiBodyState extends State<MapUiBody> {
   bool _nightMode = false;
   UserConfiguration uConf = locator<UserConfiguration>();
 
+  //instance to manage database
+  SqfLiteService _sqliteService = SqfLiteService();
+  //circle to put in map
+  Set<Circle> _circles;
+  //liste of used Position
+  List<String> used = [];
+
+
+
   @override
   void initState() {
     super.initState();
+    this._circles = HashSet<Circle>();
   }
 
   @override
@@ -109,6 +123,7 @@ class MapUiBodyState extends State<MapUiBody> {
       myLocationButtonEnabled: _myLocationButtonEnabled,
       trafficEnabled: _myTrafficEnabled,
       onCameraMove: _updateCameraPosition,
+      circles: this._circles,
     );
 
     return new Scaffold(
@@ -131,6 +146,27 @@ class MapUiBodyState extends State<MapUiBody> {
     setState(() {
       _controller = controller;
       _isMapCreated = true;
+    });
+    this._sqliteService.getAllSensorModelAfterDate(this.uConf.mapSyncFrequency).then((res) {
+      this._circles.clear(); //clean last content.
+      this.used.clear(); //revoir cette façon de faire.
+      for(var i = 0; i < res.length; i++) {
+        var json = SimpleGeoHash.decode(res[i].position.geohash);
+        if(!this.used.contains(res[i].position.geohash)) {
+          this.used.add(res[i].position.geohash);
+          this._circles.add(
+          Circle(
+            circleId: CircleId("$i"),
+            center: LatLng(json["latitude"], json["longitude"]),
+            radius: 20,
+            strokeWidth: 0,
+            fillColor: Color.fromRGBO(102, 225, 0, .2)),//Color.fromRGBO(102, 225, 0, .3)), //gérer correctement les couleurs voir ave ramy et les autres.
+          );
+        }
+        
+      }
+      
+      this.setState(() {});
     });
   }
 }

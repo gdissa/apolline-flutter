@@ -38,7 +38,7 @@ class SensorModel {
   ///
   ///constructor of senorModel.
   SensorModel({this.values, this.device, this.position}) {
-    this._date = DateTime.now().microsecondsSinceEpoch;
+    this._date = DateTime.now().millisecondsSinceEpoch;
   }
 
   ///

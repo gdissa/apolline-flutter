@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:apollineflutter/models/sensor_collection.dart';
 import 'package:apollineflutter/models/sensormodel.dart';
+import 'package:apollineflutter/services/realtime_data_service.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:apollineflutter/models/user_configuration.dart';
 
 // Author GDISSA Ramy
 // Sqflite Database
@@ -159,6 +161,20 @@ class SqfLiteService {
       return sensdorModels;
     }
     return sensdorModels;
+  }
+
+  ///
+  ///get all data after this mapfrequency [freq].
+  Future<List<SensorModel>> getAllSensorModelAfterDate(MapFrequency freq) async {
+    List<SensorModel> sensorModels = [];
+    final List<int> freqC = [1, 5, 15, 30, 60, 180, 360, 720, 1440]; //convert to minute.
+    var time = DateTime.now().millisecondsSinceEpoch - 60000*freqC[freq.index];
+
+    Database db = await database;
+    var jsonres = await db.query(tableSensorModel, columns: null, where: "$columnDate >= ?", whereArgs: [time]);
+    jsonres.forEach((pJson) { sensorModels.add(SensorModel.fromJson(pJson)); });
+    
+    return sensorModels;
   }
 
 

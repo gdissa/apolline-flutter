@@ -22,7 +22,7 @@ class UserConfiguration {
 
   ///
   ///Constructor
-  UserConfiguration({mapSyncFrequency: MapFrequency.MAP_SYNC_30_MIN}) {
+  UserConfiguration({mapSyncFrequency: MapFrequency.MAP_SYNC_1_MIN}) {
     this._mapSyncFrequency = mapSyncFrequency;
   }
 
