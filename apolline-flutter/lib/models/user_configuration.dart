@@ -1,16 +1,16 @@
 
 ///Author (Issagha BARRY)
 ///
-class MapFrequency {
-  static const int MAP_SYNC_1_MIN = 0;
-  static const int MAP_SYNC_5_MIN = 1;
-  static const int MAP_SYNC_15_MIN = 2;
-  static const int MAP_SYNC_30_MIN = 3;
-  static const int MAP_SYNC_1_HOUR = 4;
-  static const int MAP_SYNC_3_HOUR = 5;
-  static const int MAP_SYNC_6_HOUR = 6;
-  static const int MAP_SYNC_12_HOUR = 7;
-  static const int MAP_SYNC_24_HOUR = 8;
+enum MapFrequency {
+  MAP_SYNC_1_MIN,
+  MAP_SYNC_5_MIN,
+  MAP_SYNC_15_MIN,
+  MAP_SYNC_30_MIN,
+  MAP_SYNC_1_HOUR,
+  MAP_SYNC_3_HOUR,
+  MAP_SYNC_6_HOUR,
+  MAP_SYNC_12_HOUR,
+  MAP_SYNC_24_HOUR
 }
 
 ///Author (Issagha BARRY)
@@ -18,7 +18,7 @@ class MapFrequency {
 class UserConfiguration {
   
   ///variable to retrieve data up to x minute
-  int _mapSyncFrequency ;
+  MapFrequency _mapSyncFrequency ;
 
   ///
   ///Constructor
@@ -40,16 +40,14 @@ class UserConfiguration {
 
   ///
   ///getteur map
-  int get mapSyncFrequency {
+  MapFrequency get mapSyncFrequency {
     return this._mapSyncFrequency;
   }
 
   ///
   ///Setteur
-  void set mapSyncFrequency(int frequency) {
-    if(frequency >= MapFrequency.MAP_SYNC_1_MIN && frequency <= MapFrequency.MAP_SYNC_24_HOUR) {
-      this._mapSyncFrequency = frequency;
-    }
+  void set mapSyncFrequency(MapFrequency frequency) {
+    this._mapSyncFrequency = frequency;
   }
 
 }

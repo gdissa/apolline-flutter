@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:apollineflutter/widgets/map_settings.dart';
 
 ///Author (Issagha BARRY)
-///Widget for all settings app
+///Widget for all settings app.
 class SettingsPage extends StatelessWidget {
 
+  ///The title at the top of widget.
   final String title;
 
+  ///
+  ///constructor.
   SettingsPage({Key key, this.title}): super(key: key);
 
+  ///
+  ///Build all settings list.
+  ///[context] the context.
   List<Widget> _buildSettingsList(BuildContext context) {
     
     return [
@@ -23,6 +29,9 @@ class SettingsPage extends StatelessWidget {
     
   }
 
+  ///
+  ///Create the widget.
+  ///[context] the context.
   @override
   Widget build(BuildContext context) {
     

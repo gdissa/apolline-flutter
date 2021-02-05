@@ -52,7 +52,6 @@ class MapUiBodyState extends State<MapUiBody> {
   @override
   void initState() {
     super.initState();
-    uConf.mapSyncFrequency = 0;
   }
 
   @override
