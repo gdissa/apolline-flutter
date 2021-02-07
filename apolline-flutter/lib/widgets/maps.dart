@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:apollineflutter/services/service_locator.dart';
-import 'package:apollineflutter/models/user_configuration.dart';
 import 'package:apollineflutter/services/sqflite_service.dart';
 import 'package:apollineflutter/utils/simple_geohash.dart';
+import 'package:apollineflutter/services/user_configuration_service.dart';
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -51,7 +51,7 @@ class MapUiBodyState extends State<MapUiBody> {
   bool _myLocationButtonEnabled = true;
   GoogleMapController _controller;
   bool _nightMode = false;
-  UserConfiguration uConf = locator<UserConfiguration>();
+  UserConfigurationService ucS = locator<UserConfigurationService>();
 
   //instance to manage database
   SqfLiteService _sqliteService = SqfLiteService();
@@ -147,7 +147,7 @@ class MapUiBodyState extends State<MapUiBody> {
       _controller = controller;
       _isMapCreated = true;
     });
-    this._sqliteService.getAllSensorModelAfterDate(this.uConf.mapSyncFrequency).then((res) {
+    this._sqliteService.getAllSensorModelAfterDate(this.ucS.userConf.mapSyncFrequency).then((res) {
       this._circles.clear(); //clean last content.
       this.used.clear(); //revoir cette façon de faire.
       for(var i = 0; i < res.length; i++) {

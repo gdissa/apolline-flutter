@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:apollineflutter/services/service_locator.dart';
 import 'package:apollineflutter/models/user_configuration.dart';
+import 'package:apollineflutter/services/user_configuration_service.dart';
 
 ///Author (Issagha BARRY)
 ///Widget
@@ -21,7 +22,7 @@ class MapSettings extends StatefulWidget {
 class _MapSettingsState extends State<MapSettings> {
 
   ///User configuration
-  UserConfiguration uConf = locator<UserConfiguration>();
+  UserConfigurationService ucS = locator<UserConfigurationService>();
   ///The labels that will be displayed in the radio buttons
   List<String> mapSyncLabel = [
     "1 minute",
@@ -39,7 +40,7 @@ class _MapSettingsState extends State<MapSettings> {
   ///This function build a radio button for mapSync
   ///[context] the context
   List<Widget> frequencyRadio(BuildContext context) {
-  
+    var uConf = this.ucS.userConf;
     List<Widget> renders = [];
     for(var i = 0; i < mapSyncLabel.length; i++) {
       renders.add(
@@ -62,6 +63,7 @@ class _MapSettingsState extends State<MapSettings> {
   ///It's show the popup that containt the radiobutton
   ///[ctx] the context
   Future<void> chooseSyncFrequency(BuildContext ctx) async{
+    var uConf = this.ucS.userConf;
     var val = await showDialog(
       context: ctx,
       builder: (BuildContext context) {
@@ -75,6 +77,7 @@ class _MapSettingsState extends State<MapSettings> {
       //save user config
       setState(() {
         uConf.mapSyncFrequency = val;
+        this.ucS.update(); //notify the settings page that something has changed.
       });
     }
     
@@ -84,6 +87,7 @@ class _MapSettingsState extends State<MapSettings> {
   ///build all settings
   ///[context] the context
   List<Widget> _buildSettings(BuildContext context) {
+    var uConf = this.ucS.userConf;
     return [
       ListTile(
         title: Text('Sync frequency'),

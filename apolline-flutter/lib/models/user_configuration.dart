@@ -29,12 +29,12 @@ class UserConfiguration {
   ///
   ///Constructor from json
   UserConfiguration.fromJson(Map json) {
-    this._mapSyncFrequency = json['mapSyncFreq'];
+    this._mapSyncFrequency = MapFrequency.values[json['mapSyncFreq']];
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "mapSyncFreq": this.mapSyncFrequency
+      "mapSyncFreq": this.mapSyncFrequency.index
     };
   }
 
