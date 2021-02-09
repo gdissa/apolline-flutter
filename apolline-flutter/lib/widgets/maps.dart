@@ -7,6 +7,9 @@ import 'package:apollineflutter/services/service_locator.dart';
 import 'package:apollineflutter/services/sqflite_service.dart';
 import 'package:apollineflutter/utils/simple_geohash.dart';
 import 'package:apollineflutter/services/user_configuration_service.dart';
+import 'package:global_configuration/global_configuration.dart';
+import 'package:apollineflutter/configuration_key_name.dart';
+import 'package:apollineflutter/models/sensormodel.dart';
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -25,6 +28,11 @@ class MapUiBody extends StatefulWidget {
 }
 
 class MapUiBodyState extends State<MapUiBody> {
+  ///The min value of pm25
+  int minPM25Value = GlobalConfiguration().get(ApollineConf.MINPM25VALUE);
+  ///The max value of pm25.
+  int maxPM25Value = GlobalConfiguration().get(ApollineConf.MAXPM25VALUE);
+
   MapUiBodyState();
 
   static final CameraPosition _kInitialPosition = const CameraPosition(
@@ -51,13 +59,14 @@ class MapUiBodyState extends State<MapUiBody> {
   bool _myLocationButtonEnabled = true;
   GoogleMapController _controller;
   bool _nightMode = false;
-  UserConfigurationService ucS = locator<UserConfigurationService>();
 
-  //instance to manage database
+  ///user configuration in the ui
+  UserConfigurationService ucS = locator<UserConfigurationService>();
+  ///instance to manage database
   SqfLiteService _sqliteService = SqfLiteService();
-  //circle to put in map
+  ///circle to put in map
   Set<Circle> _circles;
-  //liste of used Position
+  ///liste of used Position
   List<String> used = [];
 
 
@@ -142,15 +151,30 @@ class MapUiBodyState extends State<MapUiBody> {
     });
   }
 
+  ///
+  ///Get the color fonction of pm25 value
+  Color getColorOfPM25(double pm25) {
+    if(pm25 < this.minPM25Value) {
+      return Color.fromRGBO(170, 255, 0, .1); //vert
+    } else if(pm25 > this.minPM25Value && pm25 < this.maxPM25Value) {
+      return Color.fromRGBO(255, 143, 0, .1); //orange
+    } else {
+      return Color.fromRGBO(255, 15, 0, .1); //rouge
+    }
+  }
+
   void onMapCreated(GoogleMapController controller) {
     setState(() {
       _controller = controller;
       _isMapCreated = true;
     });
+
+    //draw circle.
     this._sqliteService.getAllSensorModelAfterDate(this.ucS.userConf.mapSyncFrequency).then((res) {
       this._circles.clear(); //clean last content.
       this.used.clear(); //revoir cette façon de faire.
       for(var i = 0; i < res.length; i++) {
+        
         var json = SimpleGeoHash.decode(res[i].position.geohash);
         if(!this.used.contains(res[i].position.geohash)) {
           this.used.add(res[i].position.geohash);
@@ -160,7 +184,7 @@ class MapUiBodyState extends State<MapUiBody> {
             center: LatLng(json["latitude"], json["longitude"]),
             radius: 20,
             strokeWidth: 0,
-            fillColor: Color.fromRGBO(102, 225, 0, .2)),//Color.fromRGBO(102, 225, 0, .3)), //gérer correctement les couleurs voir ave ramy et les autres.
+            fillColor: this.getColorOfPM25(res[i].pm25value))//gérer correctement les couleurs voir ave ramy et les autres.
           );
         }
         

@@ -3,5 +3,7 @@
     "ping_url": "http://192.168.0.33/health",
     "password": "apollineapp",
     "username": "apollineapp",
-    "dbname": "apolline"
+    "dbname": "apolline",
+    "minPm25Value": 0,
+    "maxPm25Value": 5
 }

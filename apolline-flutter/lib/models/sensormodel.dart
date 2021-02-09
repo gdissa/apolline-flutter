@@ -55,6 +55,12 @@ class SensorModel {
   }
 
   ///
+  ///return the pm 25 value
+  double get pm25value {
+    return double.parse(this.values[SENSOR_PM_2_5]);
+  }
+
+  ///
   ///return the humidity compensated.
   double get humidityC {
     var divisor = (1.0546 - 0.00216 * (this.temperatureK - 273.15)) * 10;
