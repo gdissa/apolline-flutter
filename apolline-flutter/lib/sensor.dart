@@ -96,29 +96,33 @@ class _SensorViewState extends State<SensorView> {
 
   // Synchronsation data sensor
   void synchronizeData() {
-    bool exitModel = true;
-    while (exitModel) {
-      // find all data not synchronisation
-      _sqfLiteService.getAllSensorModelsNotSyncro(limit, offset).then((sensormodels) {
-        if (sensormodels.length == 0) {
-          exitModel = false;
-          offset = 0;
-        } else {
-          offset = offset + limit;
+    // find all data not synchronisation
+    int pagination = 160;
+    _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) {
+      if (sensormodels.length > 0) {
+        // Pagination data before sending to influxDB
+        var iter = (sensormodels.length / pagination).ceil();
+        for (var i = 0; i < iter; i++) {
+          int start = i * pagination;
+          int end = (i + 1) * pagination;
+          if (1 == iter || i + 1 == iter) {
+            end = sensormodels.length;
+          }
+          var sousList = sensormodels.sublist(start, end);
           //Send data to influxDB
-          _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels)).then((_) {
+          _service.write(SensorModel.sensorsFmtToInfluxData(sousList)).then((_) {
             List<int> ids = [];
-            sensormodels.forEach((sensormodel) {
-              ids.add(sensormodel.id);
+            sensormodels.forEach((sousList) {
+              ids.add(sousList.id);
             });
-            //Update data in sqfLite
+            //Update data (synchronisation) in sqfLite
             _sqfLiteService.updateSensorSynchronisation(ids);
           }).catchError((error) {
             print(error);
           });
         }
-      });
-    }
+      }
+    });
   }
 
   void updateState(String st) {
