@@ -36,10 +36,6 @@ class _SensorViewState extends State<SensorView> {
   StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
-  //used to get data not synchro
-  int offset = 0;
-  int limit = 150;
-
   List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
   bool showErrorAction = false;
