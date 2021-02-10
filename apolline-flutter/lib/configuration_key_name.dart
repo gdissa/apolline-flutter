@@ -17,5 +17,10 @@ class ApollineConf {
   static const String MINPM25VALUE = "minPm25Value";
   ///
   static const String MAXPM25VALUE = "maxPm25Value";
+  ///the all min values for pm order in the model.
+  static const String MINPMVALUES = "minPmValues";
+  ///the all max values for pm order in the model.
+  static const String MAXPMVALUES = "maxPmValues";
+
 
 }

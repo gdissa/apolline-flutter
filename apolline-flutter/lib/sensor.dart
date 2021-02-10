@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:apollineflutter/models/sensor_device.dart';
 import 'package:apollineflutter/services/influxdb_client.dart';
-import 'package:apollineflutter/widgets/settings.dart';
 import 'models/sensormodel.dart';
 import 'services/realtime_data_service.dart';
 import 'services/service_locator.dart';
@@ -321,34 +320,6 @@ class _SensorViewState extends State<SensorView> {
         : [];
   }
 
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        children: <Widget>[
-          Container(
-            height: 50,
-            child: DrawerHeader(
-              child: Text('Apolline'),
-              decoration: BoxDecoration(
-                color: Colors.blue
-              ),
-              margin: EdgeInsets.all(0.0),
-              padding: EdgeInsets.all(0.0),
-            )
-          ),
-          
-          ListTile(
-            title: Text('Settings'),
-            onTap: () {
-              
-              Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsPage(title: "Settings")));
-            },
-          )
-        ],
-      ),
-    );
-  }
-
   ///
   ///Called when press back button
   Future<bool> _onWillPop() async {
@@ -388,7 +359,6 @@ class _SensorViewState extends State<SensorView> {
             length: 3,
             child: Scaffold(
                 key: _scaffoldKey,
-                drawer: _buildDrawer(context),
                 appBar: AppBar(
                   backgroundColor: Colors.green,
                   bottom: TabBar(

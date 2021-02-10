@@ -9,7 +9,8 @@ import 'package:apollineflutter/utils/simple_geohash.dart';
 import 'package:apollineflutter/services/user_configuration_service.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:apollineflutter/configuration_key_name.dart';
-import 'package:apollineflutter/models/sensormodel.dart';
+import 'package:apollineflutter/models/user_configuration.dart';
+
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -28,10 +29,39 @@ class MapUiBody extends StatefulWidget {
 }
 
 class MapUiBodyState extends State<MapUiBody> {
-  ///The min value of pm25
-  int minPM25Value = GlobalConfiguration().get(ApollineConf.MINPM25VALUE);
-  ///The max value of pm25.
-  int maxPM25Value = GlobalConfiguration().get(ApollineConf.MAXPM25VALUE);
+  
+  ///
+  var minPmValues = GlobalConfiguration().get(ApollineConf.MINPMVALUES);
+  var maxPmValues = GlobalConfiguration().get(ApollineConf.MAXPMVALUES);
+  /// the label for time.
+  List<String> mapTimeLabel = [
+    "1 minute",
+    "5 minute",
+    "15 minute",
+    "30 minute",
+    "1 heure",
+    "3 heures",
+    "6 heures",
+    "12 heures",
+    "24 heures",
+    "Aujourd'hui",
+    "Cette semaine"
+
+  ];
+  /// the label of pm
+  List<String> pmLabels= [
+    "PM 1",
+    "PM 2_5",
+    "PM 10",
+    "PM_ABOVE 0_3",
+    "PM_ABOVE 0_5",
+    "PM_ABOVE 1",
+    "PM_ABOVE 2_5",
+    "PM_ABOVE 5",
+    "PM_ABOVE 10",
+  ];
+  ///
+  List<int> indexPmValueInModel = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   MapUiBodyState();
 
@@ -75,6 +105,7 @@ class MapUiBodyState extends State<MapUiBody> {
   void initState() {
     super.initState();
     this._circles = HashSet<Circle>();
+    this.getSensorDataAfterDate();
   }
 
   @override
@@ -91,6 +122,81 @@ class MapUiBodyState extends State<MapUiBody> {
       _nightMode = true;
       _controller.setMapStyle(mapStyle);
     });
+  }
+
+  ///
+  ///This function build a radio button for mapSync
+  ///[context] the context
+  ///[labels] the label
+  ///[values] all value 
+  List<Widget> frequencyRadio(BuildContext context, List<String> labels, List<dynamic> values, dynamic current) {
+    
+    List<Widget> renders = [];
+    for(var i = 0; i < labels.length; i++) {
+      renders.add(
+        ListTile(
+          title: Text(labels[i]),
+          leading: Radio(
+            value: values[i], //we use index for maping label et MapFrequency
+            groupValue: current,
+            onChanged: (dynamic value) {
+              Navigator.pop(context, values[i]);
+            },
+          ),
+        ),
+      );
+    }
+    return renders;
+  }
+
+  ///
+  ///Create dialog for select.
+  ///[ctx] the context of app
+  ///[labels] label in the select
+  ///[values] the values corresponding to labels
+  ///[current] the current value of select
+  Future<dynamic> dialog(BuildContext ctx, List<String> labels, List<dynamic> values, dynamic current) async{
+    var val = await showDialog(
+      context: ctx,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.only(left:0),
+          content: Container(
+            height: 300,
+            width: 300,
+            child: ListView(
+              children: this.frequencyRadio(context, labels, values, current),
+            )
+          ),
+        );
+      }
+    );
+    return val;
+  }
+
+
+  ///
+  ///select for time frequency
+  ///[ctx] the context of app
+  Future<void> chooseTimeFrequency(BuildContext ctx) async{
+    var uConf = this.ucS.userConf;
+    var val = await this.dialog(ctx, mapTimeLabel, MapFrequency.values, uConf.mapSyncFrequency);
+    if(val != null) {
+      uConf.mapSyncFrequency = val;
+      this.ucS.update(); //notify the settings page that something has changed.
+    }
+  }
+
+  ///
+  ///select for choose pm.
+  ///[ctx] the context of app
+  Future<void> choosePm(BuildContext ctx) async {
+    var uConf = this.ucS.userConf;
+    var val = await this.dialog(ctx, pmLabels, indexPmValueInModel, uConf.pmIndex);
+    if(val != null) {
+      uConf.pmIndex = val;
+      this.ucS.update();
+    }
   }
 
   Widget _nightModeToggler() {
@@ -137,6 +243,24 @@ class MapUiBodyState extends State<MapUiBody> {
 
     return new Scaffold(
       body: googleMap,
+      floatingActionButton: Stack(
+        children: [
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: FloatingActionButton.extended(
+              label: Text("Time"),
+              onPressed: () { this.chooseTimeFrequency(context); },
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: FloatingActionButton.extended(
+              label: Text("PM"),
+              onPressed: () { this.choosePm(context); },
+            ),
+          )
+        ],
+      ),
       // floatingActionButton: FloatingActionButton.extended(
       //   onPressed: _nightModeToggler,
       //   label: Text('Mode night!'),
@@ -153,44 +277,50 @@ class MapUiBodyState extends State<MapUiBody> {
 
   ///
   ///Get the color fonction of pm25 value
-  Color getColorOfPM25(double pm25) {
-    if(pm25 < this.minPM25Value) {
+  Color getColorOfPM25(double pmValue) {
+    var index = this.indexPmValueInModel.indexOf(this.ucS.userConf.pmIndex);
+
+    var min = index != null && index < this.indexPmValueInModel.length ? this.minPmValues[index] : 0;
+    var max = index != null && index < this.indexPmValueInModel.length ? this.maxPmValues[index] : 1;
+    if(pmValue < min) {
       return Color.fromRGBO(170, 255, 0, .1); //vert
-    } else if(pm25 > this.minPM25Value && pm25 < this.maxPM25Value) {
+    } else if(pmValue > min && pmValue < max) {
       return Color.fromRGBO(255, 143, 0, .1); //orange
     } else {
       return Color.fromRGBO(255, 15, 0, .1); //rouge
     }
   }
 
-  void onMapCreated(GoogleMapController controller) {
-    setState(() {
-      _controller = controller;
-      _isMapCreated = true;
-    });
-
-    //draw circle.
+  void getSensorDataAfterDate() {
     this._sqliteService.getAllSensorModelAfterDate(this.ucS.userConf.mapSyncFrequency).then((res) {
       this._circles.clear(); //clean last content.
       this.used.clear(); //revoir cette façon de faire.
       for(var i = 0; i < res.length; i++) {
         
         var json = SimpleGeoHash.decode(res[i].position.geohash);
-        if(!this.used.contains(res[i].position.geohash)) {
-          this.used.add(res[i].position.geohash);
-          this._circles.add(
-          Circle(
-            circleId: CircleId("$i"),
-            center: LatLng(json["latitude"], json["longitude"]),
-            radius: 20,
-            strokeWidth: 0,
-            fillColor: this.getColorOfPM25(res[i].pm25value))//gérer correctement les couleurs voir ave ramy et les autres.
-          );
-        }
+        
+        this.used.add(res[i].position.geohash);
+        this._circles.add(
+        Circle(
+          circleId: CircleId("$i"),
+          center: LatLng(json["latitude"], json["longitude"]),
+          radius: 10,
+          strokeWidth: 0,
+          fillColor: this.getColorOfPM25(res[i].pm25value))//gérer correctement les couleurs voir ave ramy et les autres.
+        );
         
       }
       
       this.setState(() {});
     });
+  }
+
+  void onMapCreated(GoogleMapController controller) {
+    _controller = controller;
+    // setState(() {
+    //   _controller = controller;
+    //   _isMapCreated = true;
+    // });
+    
   }
 }
