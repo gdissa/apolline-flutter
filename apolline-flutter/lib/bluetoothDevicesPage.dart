@@ -1,5 +1,6 @@
 import 'package:apollineflutter/sensor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 class BluetoothDevicesPage extends StatefulWidget {
@@ -22,7 +23,19 @@ class BluetoothDevicesPage extends StatefulWidget {
   _BluetoothDevicesPageState createState() => _BluetoothDevicesPageState();
 }
 
-class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
+class _BluetoothDevicesPageState extends State<BluetoothDevicesPage>
+    with WidgetsBindingObserver {
+  //channel crée pour communiquer avec le code d'android pour le background service
+  static const channel = MethodChannel("apolline.backgroundChannel");
+  runBackgroundService() async {
+    try {
+      String data = await channel.invokeMethod("startBackgroundService");
+      debugPrint(data);
+    } on PlatformException catch (ex) {
+      print(ex.message);
+    }
+  }
+
   String state = "Scanning...";
   bool timeout = true;
   Map<String, BluetoothDevice> devices = {};
@@ -32,6 +45,26 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
   void initState() {
     super.initState();
     initializeDevice();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  AppLifecycleState appLifecycleState;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        //lancer background service
+        runBackgroundService();
+        break;
+      default:
+    }
   }
 
   ///
@@ -50,7 +83,9 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
   void showDialogBluetooth() {
     Widget okbtn = FlatButton(
       child: Text("ok"),
-      onPressed: () { Navigator.of(context).pop(); },
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
     );
 
     AlertDialog alert = AlertDialog(
@@ -90,7 +125,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
     /* For each result, insert into the detected devices list if not already present */
     var subscription = widget.flutterBlue.scanResults.listen((results) {
       for (ScanResult r in results) {
-        if(r.device.name.length > 0) {
+        if (r.device.name.length > 0) {
           setState(() {
             devices.putIfAbsent(r.device.id.toString(), () => r.device);
           });
