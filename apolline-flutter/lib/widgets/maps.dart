@@ -31,8 +31,8 @@ class MapUiBody extends StatefulWidget {
 class MapUiBodyState extends State<MapUiBody> {
   
   ///
-  var minPmValues = GlobalConfiguration().get(ApollineConf.MINPMVALUES);
-  var maxPmValues = GlobalConfiguration().get(ApollineConf.MAXPMVALUES);
+  var minPmValues = GlobalConfiguration().get(ApollineConf.MINPMVALUES) ?? [];
+  var maxPmValues = GlobalConfiguration().get(ApollineConf.MAXPMVALUES) ?? [];
   /// the label for time.
   List<String> mapTimeLabel = [
     "1 minute",
@@ -184,6 +184,7 @@ class MapUiBodyState extends State<MapUiBody> {
     if(val != null) {
       uConf.mapSyncFrequency = val;
       this.ucS.update(); //notify the settings page that something has changed.
+      this.getSensorDataAfterDate();
     }
   }
 
@@ -196,6 +197,7 @@ class MapUiBodyState extends State<MapUiBody> {
     if(val != null) {
       uConf.pmIndex = val;
       this.ucS.update();
+      this.getSensorDataAfterDate();
     }
   }
 
@@ -243,29 +245,25 @@ class MapUiBodyState extends State<MapUiBody> {
 
     return new Scaffold(
       body: googleMap,
-      floatingActionButton: Stack(
-        children: [
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FloatingActionButton.extended(
               label: Text("Time"),
               onPressed: () { this.chooseTimeFrequency(context); },
+              backgroundColor: Colors.green, //TODO trouver le moyen de factoriser dans ThemeData
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: FloatingActionButton.extended(
+            FloatingActionButton.extended(
               label: Text("PM"),
               onPressed: () { this.choosePm(context); },
-            ),
-          )
-        ],
+              backgroundColor: Colors.green, //TODO trouver le moyen de factoriser dans ThemeData
+            )
+          ],
+        ),
       ),
-      // floatingActionButton: FloatingActionButton.extended(
-      //   onPressed: _nightModeToggler,
-      //   label: Text('Mode night!'),
-      //   icon: Icon(Icons.nights_stay),
-      // ),
     );
   }
 
@@ -280,8 +278,8 @@ class MapUiBodyState extends State<MapUiBody> {
   Color getColorOfPM25(double pmValue) {
     var index = this.indexPmValueInModel.indexOf(this.ucS.userConf.pmIndex);
 
-    var min = index != null && index < this.indexPmValueInModel.length ? this.minPmValues[index] : 0;
-    var max = index != null && index < this.indexPmValueInModel.length ? this.maxPmValues[index] : 1;
+    var min = index >= 0 && index < this.minPmValues.length ? this.minPmValues[index] : 0;
+    var max = index >= 0 && index < this.maxPmValues.length ? this.maxPmValues[index] : 1;
     if(pmValue < min) {
       return Color.fromRGBO(170, 255, 0, .1); //vert
     } else if(pmValue > min && pmValue < max) {
@@ -291,6 +289,8 @@ class MapUiBodyState extends State<MapUiBody> {
     }
   }
 
+  ///
+  ///update data after change time of pm choice.
   void getSensorDataAfterDate() {
     this._sqliteService.getAllSensorModelAfterDate(this.ucS.userConf.mapSyncFrequency).then((res) {
       this._circles.clear(); //clean last content.
@@ -306,7 +306,7 @@ class MapUiBodyState extends State<MapUiBody> {
           center: LatLng(json["latitude"], json["longitude"]),
           radius: 10,
           strokeWidth: 0,
-          fillColor: this.getColorOfPM25(res[i].pm25value))//gérer correctement les couleurs voir ave ramy et les autres.
+          fillColor: this.getColorOfPM25(double.parse(res[i].values[this.ucS.userConf.pmIndex])))//gérer correctement les couleurs voir ave ramy et les autres.
         );
         
       }
