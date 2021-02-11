@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,8 @@ import 'package:apollineflutter/services/user_configuration_service.dart';
 import 'package:global_configuration/global_configuration.dart';
 import 'package:apollineflutter/configuration_key_name.dart';
 import 'package:apollineflutter/models/user_configuration.dart';
+import 'package:apollineflutter/services/realtime_data_service.dart';
+import 'package:apollineflutter/models/sensormodel.dart';
 
 
 class MapSample extends StatelessWidget {
@@ -30,9 +33,22 @@ class MapUiBody extends StatefulWidget {
 
 class MapUiBodyState extends State<MapUiBody> {
   
-  ///
+  ///the min value of pm order in sensormodel.
   var minPmValues = GlobalConfiguration().get(ApollineConf.MINPMVALUES) ?? [];
+  ///the max value of pm order in sensormodel.
   var maxPmValues = GlobalConfiguration().get(ApollineConf.MAXPMVALUES) ?? [];
+  ///user configuration in the ui
+  UserConfigurationService ucS = locator<UserConfigurationService>();
+  ///instance to manage database
+  SqfLiteService _sqliteService = SqfLiteService();
+  ///circle to put in map
+  Set<Circle> _circles;
+  ///liste of used Position
+  List<String> used = [];
+  ///help for close subscription
+  StreamSubscription _sub;
+  ///help to listen data
+  Stream<SensorModel> _sensorDataStream = locator<RealtimeDataService>().dataStream;
   /// the label for time.
   List<String> mapTimeLabel = [
     "1 minute",
@@ -60,7 +76,7 @@ class MapUiBodyState extends State<MapUiBody> {
     "PM_ABOVE 5",
     "PM_ABOVE 10",
   ];
-  ///
+  ///the index of each pm in model.
   List<int> indexPmValueInModel = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   MapUiBodyState();
@@ -90,26 +106,24 @@ class MapUiBodyState extends State<MapUiBody> {
   GoogleMapController _controller;
   bool _nightMode = false;
 
-  ///user configuration in the ui
-  UserConfigurationService ucS = locator<UserConfigurationService>();
-  ///instance to manage database
-  SqfLiteService _sqliteService = SqfLiteService();
-  ///circle to put in map
-  Set<Circle> _circles;
-  ///liste of used Position
-  List<String> used = [];
-
-
 
   @override
   void initState() {
     super.initState();
     this._circles = HashSet<Circle>();
     this.getSensorDataAfterDate();
+    this.listenSensorData();
+  }
+
+  void listenSensorData() {
+    this._sub = this._sensorDataStream.listen((pModel) {
+      print(pModel);
+    });
   }
 
   @override
   void dispose() {
+    this._sub?.cancel();
     super.dispose();
   }
 

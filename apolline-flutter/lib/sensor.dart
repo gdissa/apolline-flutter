@@ -79,7 +79,7 @@ class _SensorViewState extends State<SensorView> {
       var position = this._currentPosition ?? Position();
 
       var model = SensorModel(values: values, device: SensorDevice(widget.device), position: position);
-      _dataService.update(values);
+      _dataService.update(model);
       /* insert to sqflite */
       _sqfLiteService.insertSensor(model.toJSON());
 
