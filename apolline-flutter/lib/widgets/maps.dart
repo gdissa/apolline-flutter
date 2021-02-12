@@ -115,9 +115,15 @@ class MapUiBodyState extends State<MapUiBody> {
     this.listenSensorData();
   }
 
+  ///
+  ///Listen sensor data.
   void listenSensorData() {
     this._sub = this._sensorDataStream.listen((pModel) {
-      print(pModel);
+      this.addCircle(pModel);
+      //manage the rendering frequency.
+      if(this._circles.length % 10 == 0) {
+        this.setState(() { });
+      }
     });
   }
 
@@ -304,25 +310,29 @@ class MapUiBodyState extends State<MapUiBody> {
   }
 
   ///
+  ///add circle to model.
+  ///[pModel] model
+  void addCircle(SensorModel pModel) {
+    var json = SimpleGeoHash.decode(pModel.position.geohash);
+    this._circles.add(
+      Circle(
+        circleId: CircleId(UniqueKey().toString()),
+        center: LatLng(json["latitude"], json["longitude"]),
+        radius: 10,
+        strokeWidth: 0,
+        fillColor: this.getColorOfPM25(double.parse(pModel.values[this.ucS.userConf.pmIndex]))
+      )
+    );
+  }
+
+  ///
   ///update data after change time of pm choice.
   void getSensorDataAfterDate() {
     this._sqliteService.getAllSensorModelAfterDate(this.ucS.userConf.mapSyncFrequency).then((res) {
       this._circles.clear(); //clean last content.
       this.used.clear(); //revoir cette façon de faire.
       for(var i = 0; i < res.length; i++) {
-        
-        var json = SimpleGeoHash.decode(res[i].position.geohash);
-        
-        this.used.add(res[i].position.geohash);
-        this._circles.add(
-        Circle(
-          circleId: CircleId("$i"),
-          center: LatLng(json["latitude"], json["longitude"]),
-          radius: 10,
-          strokeWidth: 0,
-          fillColor: this.getColorOfPM25(double.parse(res[i].values[this.ucS.userConf.pmIndex])))//gérer correctement les couleurs voir ave ramy et les autres.
-        );
-        
+        this.addCircle(res[i]);
       }
       
       this.setState(() {});
@@ -331,10 +341,7 @@ class MapUiBodyState extends State<MapUiBody> {
 
   void onMapCreated(GoogleMapController controller) {
     _controller = controller;
-    // setState(() {
-    //   _controller = controller;
-    //   _isMapCreated = true;
-    // });
+     _isMapCreated = true;
     
   }
 }
