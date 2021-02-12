@@ -169,8 +169,10 @@ class SqfLiteService {
     List<SensorModel> sensorModels = [];
     var now = DateTime.now();
     List<int> freqC = [1, 5, 15, 30, 60, 180, 360, 720, 1440]; //convert to minute.
-    freqC.add(now.hour*60 + now.minute); //aujourd'hui
-    freqC.add(6*60 + (now.hour*24*60 + now.millisecond)); //il ya une semaine.
+    var today = now.hour*60 + now.minute;
+    var thisweek = (now.weekday - 1) * 24 * 60 + today;
+    freqC.add(today);
+    freqC.add(thisweek);
     var time = now.millisecondsSinceEpoch - 60000*freqC[freq.index];
 
     Database db = await database;
