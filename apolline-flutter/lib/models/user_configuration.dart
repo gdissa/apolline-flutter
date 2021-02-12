@@ -40,6 +40,8 @@ class UserConfiguration {
     this._pmIndex = json['pmIndex'];
   }
 
+  ///
+  ///formate class to json.
   Map<String, dynamic> toJson() {
     return {
       "mapSyncFreq": this.mapSyncFrequency.index,

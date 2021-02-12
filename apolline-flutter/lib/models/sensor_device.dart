@@ -1,11 +1,13 @@
 import 'package:flutter_blue/flutter_blue.dart';
 
+/// Authors BARRY Issagha, GDISSA Ramy
+/// 
 class SensorDevice {
   BluetoothDevice _device;
   String _name;
   String _uuid;
 
-  /// Authors BARRY Issagha, GDISSA Ramy
+  ///
   ///constructor
   SensorDevice(this._device);
 

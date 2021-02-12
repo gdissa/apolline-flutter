@@ -43,8 +43,6 @@ class MapUiBodyState extends State<MapUiBody> {
   SqfLiteService _sqliteService = SqfLiteService();
   ///circle to put in map
   Set<Circle> _circles;
-  ///liste of used Position
-  List<String> used = [];
   ///help for close subscription
   StreamSubscription _sub;
   ///help to listen data
@@ -330,7 +328,6 @@ class MapUiBodyState extends State<MapUiBody> {
   void getSensorDataAfterDate() {
     this._sqliteService.getAllSensorModelAfterDate(this.ucS.userConf.mapSyncFrequency).then((res) {
       this._circles.clear(); //clean last content.
-      this.used.clear(); //revoir cette façon de faire.
       for(var i = 0; i < res.length; i++) {
         this.addCircle(res[i]);
       }
