@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:apollineflutter/gattsample.dart';
 import 'package:apollineflutter/services/sqflite_service.dart';
@@ -16,7 +17,6 @@ import 'widgets/maps.dart';
 import 'widgets/quality.dart';
 import 'widgets/stats.dart';
 import 'package:apollineflutter/services/service_locator.dart';
-
 
 enum ConnexionType { Normal, Disconnect }
 
@@ -37,7 +37,6 @@ class _SensorViewState extends State<SensorView> {
   StreamSubscription subBluetoothState; //used for remove listening value to sensor
   StreamSubscription subLocation;
   bool isConnected = false;
-
   List<StreamSubscription> subs = []; //used for remove listening value to sensor
   StreamSubscription subData;
   bool showErrorAction = false;
@@ -63,9 +62,8 @@ class _SensorViewState extends State<SensorView> {
     super.initState();
     initializeDevice();
     initializeLocation();
-    //synchronizeData();
     //synchronisation data
-    this.timerSynchro = Timer.periodic(Duration(seconds: 60), (Timer t) => synchronizeData());
+    this.timerSynchro = Timer.periodic(Duration(seconds: 120), (Timer t) => synchronizeData());
   }
 
   /* Called when data is received from the sensor */
@@ -93,30 +91,34 @@ class _SensorViewState extends State<SensorView> {
     }
   }
 
+  // Synchronsation data sensor
   void synchronizeData() {
+    // find all data not synchronisation
+    int pagination = 160;
     _sqfLiteService.getAllSensorModelsNotSyncro().then((sensormodels) {
-      
-      _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels))
-      .then((_) {
-        List<int> ids = [];
-        sensormodels.forEach((sensormodel) {
-          ids.add(sensormodel.id);
-        });
-        _sqfLiteService.updateSensorSynchronisation(ids);
-      }).catchError((error) {
-        print(error);
-      });
-      // try {
-      //   // inset all in influxDB
-      //   _service.write(SensorModel.sensorsFmtToInfluxData(sensormodels));
-      //   List<int> ids = [];
-      //   sensormodels.forEach((sensormodel) {
-      //     ids.add(sensormodel.id);
-      //   });
-      //   _sqfLiteService.updateSensorSynchronisation(ids);
-      // } catch (err) {
-      //   print("influx not running");
-      // }
+      if (sensormodels.length > 0) {
+        // Pagination data before sending to influxDB
+        var iter = (sensormodels.length / pagination).ceil();
+        for (var i = 0; i < iter; i++) {
+          int start = i * pagination;
+          int end = (i + 1) * pagination;
+          if (1 == iter || i + 1 == iter) {
+            end = sensormodels.length;
+          }
+          var sousList = sensormodels.sublist(start, end);
+          //Send data to influxDB
+          _service.write(SensorModel.sensorsFmtToInfluxData(sousList)).then((_) {
+            List<int> ids = [];
+            sensormodels.forEach((sousList) {
+              ids.add(sousList.id);
+            });
+            //Update data (synchronisation) in sqfLite
+            _sqfLiteService.updateSensorSynchronisation(ids);
+          }).catchError((error) {
+            print(error);
+          });
+        }
+      }
     });
   }
 
