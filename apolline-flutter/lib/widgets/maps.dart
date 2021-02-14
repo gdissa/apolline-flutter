@@ -50,9 +50,9 @@ class MapUiBodyState extends State<MapUiBody> {
   /// the label for time.
   List<String> mapTimeLabel = [
     "last minute",
-    "last 5 minute",
-    "last 15 minute",
-    "last 30 minute",
+    "last 5 minutes",
+    "last 15 minutes",
+    "last 30 minutes",
     "last 1 hour",
     "last 3 hours",
     "last 6 hours",
