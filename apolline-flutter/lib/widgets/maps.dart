@@ -49,17 +49,17 @@ class MapUiBodyState extends State<MapUiBody> {
   Stream<SensorModel> _sensorDataStream = locator<RealtimeDataService>().dataStream;
   /// the label for time.
   List<String> mapTimeLabel = [
-    "1 minute",
-    "5 minute",
-    "15 minute",
-    "30 minute",
-    "1 heure",
-    "3 heures",
-    "6 heures",
-    "12 heures",
-    "24 heures",
-    "Aujourd'hui",
-    "Cette semaine"
+    "last minute",
+    "last 5 minute",
+    "last 15 minute",
+    "last 30 minute",
+    "last 1 hour",
+    "last 3 hours",
+    "last 6 hours",
+    "last 12 hours",
+    "last 24 hours",
+    "Today",
+    "This week"
 
   ];
   /// the label of pm

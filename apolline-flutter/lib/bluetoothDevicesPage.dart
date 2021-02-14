@@ -88,7 +88,7 @@ class _BluetoothDevicesPageState extends State<BluetoothDevicesPage> {
       timeout = false;
     });
 
-    widget.flutterBlue.startScan(timeout: Duration(seconds: 15)).then((val) {
+    widget.flutterBlue.startScan(timeout: Duration(seconds: 10)).then((val) {
       setState(() {
         timeout = true;
       });
