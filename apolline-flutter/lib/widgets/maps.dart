@@ -13,9 +13,6 @@ import 'package:apollineflutter/configuration_key_name.dart';
 import 'package:apollineflutter/models/user_configuration.dart';
 import 'package:apollineflutter/services/realtime_data_service.dart';
 import 'package:apollineflutter/models/sensormodel.dart';
-import 'package:location/location.dart';
-
-
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -78,8 +75,6 @@ class MapUiBodyState extends State<MapUiBody> {
   ];
   ///the index of each pm in model.
   List<int> indexPmValueInModel = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  // location to get position 
-  Location _location = Location();
   
   MapUiBodyState();
 
@@ -120,11 +115,14 @@ class MapUiBodyState extends State<MapUiBody> {
   ///Listen sensor data.
   void listenSensorData() {
     this._sub = this._sensorDataStream.listen((pModel) {
-      this.addCircle(pModel);
-      //manage the rendering frequency.
-      if(this._circles.length % 10 == 0) {
-        this.setState(() { });
+      if(pModel.position.geohash != "no") {
+        this.addCircle(pModel);
+        //manage the rendering frequency.
+        if(this._circles.length % 10 == 0) {
+          this.setState(() { });
+        }
       }
+      
     });
   }
 
@@ -343,13 +341,6 @@ class MapUiBodyState extends State<MapUiBody> {
   // Created map
   void onMapCreated(GoogleMapController controller) {
     _controller = controller;
-    _location.onLocationChanged.listen((l) { 
-      _controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(target: LatLng(l.latitude, l.longitude),zoom: 16),
-          ),
-      );
-    });
      _isMapCreated = true;
     
   }
