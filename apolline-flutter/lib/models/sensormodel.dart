@@ -49,13 +49,6 @@ class SensorModel {
   }
 
   ///
-  ///constructor of senorModel with date.
-  // ignore: non_constant_identifier_names
-  SensorModel.bdd({this.id, this.values, this.device, this.position, date}) {
-    this._date = date;
-  }
-
-  ///
   ///return the temperature in kelvin.
   double get temperatureK {
     return double.parse(this.values[SENSOR_TEMP]) + 273.15;
