@@ -219,6 +219,8 @@ class MapUiBodyState extends State<MapUiBody> {
     }
   }
 
+  ///
+  ///Not used, help to change in night mode.
   Widget _nightModeToggler() {
     if (!_isMapCreated) {
       return null;
