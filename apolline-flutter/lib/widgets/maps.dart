@@ -13,6 +13,8 @@ import 'package:apollineflutter/configuration_key_name.dart';
 import 'package:apollineflutter/models/user_configuration.dart';
 import 'package:apollineflutter/services/realtime_data_service.dart';
 import 'package:apollineflutter/models/sensormodel.dart';
+import 'package:apollineflutter/services/location_service.dart';
+
 
 class MapSample extends StatelessWidget {
   MapSample() : super();
@@ -78,12 +80,12 @@ class MapUiBodyState extends State<MapUiBody> {
   
   MapUiBodyState();
 
-  static final CameraPosition _kInitialPosition = const CameraPosition(
+  CameraPosition _kInitialPosition = CameraPosition(
     target: LatLng(50.6333, 3.0667),
-    zoom: 16.0,
+    zoom: 11.0,
   );
 
-  CameraPosition _position = _kInitialPosition;
+  CameraPosition _position;
   bool _isMapCreated = false;
   bool _isMoving = false;
   bool _compassEnabled = true;
@@ -107,6 +109,7 @@ class MapUiBodyState extends State<MapUiBody> {
   void initState() {
     super.initState();
     this._circles = HashSet<Circle>();
+    this._position = this._kInitialPosition;
     this.getSensorDataAfterDate();
     this.listenSensorData();
   }
@@ -287,10 +290,10 @@ class MapUiBodyState extends State<MapUiBody> {
     );
   }
 
+  ///
+  ///Call when cameraPosition update
   void _updateCameraPosition(CameraPosition position) {
-    setState(() {
-      _position = position;
-    });
+    _position = position;
   }
 
   ///
@@ -338,10 +341,23 @@ class MapUiBodyState extends State<MapUiBody> {
     });
   }
 
-  // Created map
+  ///
+  /// Call when map is create.
+  /// [controller] GoogleMapController help to do something.
   void onMapCreated(GoogleMapController controller) {
     _controller = controller;
-     _isMapCreated = true;
-    
+    _isMapCreated = true;
+    SimpleLocationService().getLocation().then((position) {
+      if(position.geohash != "no") {
+        var json = SimpleGeoHash.decode(position.geohash);
+        this._kInitialPosition = CameraPosition(
+          target: LatLng(json["latitude"], json["longitude"]),
+          zoom: 19.0,
+        );
+        
+      }
+      this._position = this._kInitialPosition;
+      this._controller.animateCamera(CameraUpdate.newCameraPosition(this._kInitialPosition));
+    });
   }
 }
